@@ -281,6 +281,7 @@
       "icon": "🎓",
       "display": "{nome}",
       "order": "nome",
+      "scope": "curso",
       "fields": [
         {
           "name": "numero",
@@ -702,6 +703,7 @@
       "icon": "📄",
       "display": "Protocolo {empresa_id} {aluno_id}",
       "order": "id DESC",
+      "scope": "curso",
       "fields": [
         {
           "name": "empresa_id",
@@ -763,6 +765,7 @@
       "icon": "🗓️",
       "display": "{aluno_id} @ {empresa_id}",
       "order": "data_hora DESC",
+      "scope": "curso",
       "fields": [
         {
           "name": "aluno_id",
@@ -836,6 +839,7 @@
       "icon": "🔗",
       "display": "{aluno_id} → {empresa_id}",
       "order": "id DESC",
+      "scope": "curso",
       "fields": [
         {
           "name": "aluno_id",
@@ -1027,6 +1031,7 @@
       "icon": "🛠️",
       "display": "{descricao}",
       "order": "colocacao_id, id",
+      "scope": "curso",
       "fields": [
         {
           "name": "colocacao_id",
@@ -1089,6 +1094,7 @@
       "unique": [
         "colocacao_id"
       ],
+      "scope": "curso",
       "fields": [
         {
           "name": "colocacao_id",
@@ -1131,6 +1137,7 @@
       "icon": "☑️",
       "display": "{titulo}",
       "order": "estado DESC, data_limite IS NULL, data_limite, id",
+      "scope": "curso",
       "fields": [
         {
           "name": "titulo",
@@ -1182,6 +1189,7 @@
       "icon": "🤝",
       "display": "{tipo} — {colocacao_id}",
       "order": "data_hora DESC",
+      "scope": "curso",
       "fields": [
         {
           "name": "colocacao_id",
@@ -1285,61 +1293,68 @@
       "placeholder": "2026/2027"
     },
     {
-      "name": "diretor_curso",
-      "label": "Diretor(a) de curso"
-    },
-    {
-      "group": "Curso (plano de estágio)"
+      "group": "Curso (plano de estágio)",
+      "scope": "curso"
     },
     {
       "name": "curso",
       "label": "Curso",
-      "placeholder": "Técnico de Gestão e Programação de Sistemas Informáticos"
+      "placeholder": "Técnico de Gestão e Programação de Sistemas Informáticos",
+      "scope": "curso"
     },
     {
       "name": "area_formacao",
       "label": "Área de formação",
-      "placeholder": "481 — Ciências Informáticas"
+      "placeholder": "481 — Ciências Informáticas",
+      "scope": "curso"
     },
     {
       "name": "duracao_total",
       "label": "Duração total (horas)",
-      "placeholder": "3 200"
+      "placeholder": "3 200",
+      "scope": "curso"
     },
     {
       "name": "duracao_sociocultural",
       "label": "Componente sociocultural (horas)",
-      "placeholder": "1 000"
+      "placeholder": "1 000",
+      "scope": "curso"
     },
     {
       "name": "duracao_cientifica",
       "label": "Componente científica (horas)",
-      "placeholder": "500"
+      "placeholder": "500",
+      "scope": "curso"
     },
     {
       "name": "duracao_tecnica",
       "label": "Componente técnica (horas)",
-      "placeholder": "1 700"
+      "placeholder": "1 700",
+      "scope": "curso"
     },
     {
       "name": "horas_fct",
       "label": "Formação em contexto de trabalho (horas)",
-      "placeholder": "300"
+      "placeholder": "300",
+      "scope": "curso"
     },
     {
       "name": "horario_fct",
       "label": "Horário por omissão",
-      "placeholder": "7 a 9 horas diárias, 5 dias por semana"
+      "placeholder": "7 a 9 horas diárias, 5 dias por semana",
+      "scope": "curso"
     },
     {
       "name": "objetivos_gerais",
       "label": "Objetivos gerais (um por linha)",
-      "type": "textarea"
+      "type": "textarea",
+      "scope": "curso"
     },
     {
       "name": "objetivos_especificos",
       "label": "Objetivos específicos (um por linha)",
-      "type": "textarea"
+      "type": "textarea",
+      "scope": "curso"
     }
   ],
   "perfil": [
@@ -1371,13 +1386,15 @@
     {
       "name": "smtp_host",
       "label": "Servidor SMTP (vazio = função mail() do servidor)",
-      "placeholder": "smtp.gmail.com"
+      "placeholder": "smtp.gmail.com",
+      "admin": true
     },
     {
       "name": "smtp_porta",
       "label": "Porta SMTP",
       "type": "number",
-      "placeholder": "465"
+      "placeholder": "465",
+      "admin": true
     },
     {
       "name": "smtp_seguranca",
@@ -1387,22 +1404,26 @@
         "ssl",
         "tls",
         "nenhuma"
-      ]
+      ],
+      "admin": true
     },
     {
       "name": "smtp_utilizador",
-      "label": "Utilizador SMTP"
+      "label": "Utilizador SMTP",
+      "admin": true
     },
     {
       "name": "smtp_password",
       "label": "Palavra-passe SMTP",
       "type": "password",
-      "secret": true
+      "secret": true,
+      "admin": true
     },
     {
       "name": "smtp_remetente",
       "label": "Remetente (vazio = utilizador SMTP)",
-      "type": "email"
+      "type": "email",
+      "admin": true
     }
   ]
 }

@@ -16,23 +16,28 @@ function lembretes_itens(): array {
     $hoje  = date('Y-m-d');
     $limite = date('Y-m-d', strtotime("+$dias days"));
     $pdo = db();
+    // só os cursos do utilizador (o administrador sem cursos ligados recebe os de todos) e os contactos que ele registou
+    global $CTX;
+    $cursos = cursos_ligados($CTX['u']);
+    if (!$cursos && $CTX['admin']) $cursos = array_map('intval', $pdo->query('SELECT id FROM cursos')->fetchAll(PDO::FETCH_COLUMN));
+    $in = $cursos ? implode(',', $cursos) : '0';
     $q = function (string $sql, array $p) use ($pdo) { $st = $pdo->prepare($sql); $st->execute($p); return $st->fetchAll(); };
 
     $tarefas = $q("SELECT t.titulo, t.data_limite, e.nome AS empresa, a.nome AS aluno FROM tarefas t
                    LEFT JOIN empresas e ON e.id = t.empresa_id LEFT JOIN alunos a ON a.id = t.aluno_id
-                   WHERE (t.estado IS NULL OR t.estado <> 'Feita') AND t.data_limite IS NOT NULL AND t.data_limite <= ?
+                   WHERE t.curso_id IN ($in) AND (t.estado IS NULL OR t.estado <> 'Feita') AND t.data_limite IS NOT NULL AND t.data_limite <= ?
                    ORDER BY t.data_limite", [$limite]);
     $pendentes = $q("SELECT c.proximo_passo, c.assunto, c.pendente, c.data_followup, e.nome AS empresa FROM contactos c
                      JOIN empresas e ON e.id = c.empresa_id
-                     WHERE c.pendente IS NOT NULL AND c.pendente <> 'Nada' AND c.data_followup IS NOT NULL AND c.data_followup <= ?
+                     WHERE c.utilizador_id = {$CTX['u']} AND c.pendente IS NOT NULL AND c.pendente <> 'Nada' AND c.data_followup IS NOT NULL AND c.data_followup <= ?
                      ORDER BY c.data_followup", [$limite]);
     $entrevistas = $q("SELECT i.data_hora, i.local, a.nome AS aluno, e.nome AS empresa FROM entrevistas i
                        JOIN alunos a ON a.id = i.aluno_id JOIN empresas e ON e.id = i.empresa_id
-                       WHERE i.estado = 'Agendada' AND substr(i.data_hora, 1, 10) BETWEEN ? AND ?
+                       WHERE i.curso_id IN ($in) AND i.estado = 'Agendada' AND substr(i.data_hora, 1, 10) BETWEEN ? AND ?
                        ORDER BY i.data_hora", [$hoje, $limite]);
     $reunioes = $q("SELECT r.data_hora, r.tipo, r.local, a.nome AS aluno, e.nome AS empresa FROM reunioes r
                     JOIN colocacoes c ON c.id = r.colocacao_id JOIN alunos a ON a.id = c.aluno_id JOIN empresas e ON e.id = c.empresa_id
-                    WHERE r.estado = 'Agendada' AND substr(r.data_hora, 1, 10) BETWEEN ? AND ?
+                    WHERE r.curso_id IN ($in) AND r.estado = 'Agendada' AND substr(r.data_hora, 1, 10) BETWEEN ? AND ?
                     ORDER BY r.data_hora", [$hoje, $limite]);
     return compact('tarefas', 'pendentes', 'entrevistas', 'reunioes', 'dias');
 }
@@ -60,7 +65,8 @@ function lembretes_texto(array $it): array {
             $d($x['data_hora']), substr($x['data_hora'], 11, 5), $x['tipo'] ?: 'Reunião', $x['aluno'], $x['empresa'], $x['local'] ? " ({$x['local']})" : ''), $it['reunioes']));
     }
     $n = count($it['tarefas']) + count($it['pendentes']) + count($it['entrevistas']) + count($it['reunioes']);
-    $nome = setting('diretor_curso');
+    global $CTX;
+    $nome = $CTX['nome'];
     $url = setting('app_url');
     $corpo = ($nome ? "Olá $nome,\n\n" : '')
         . "Lembretes da Gestão FCT para hoje e os próximos {$it['dias']} dia(s):\n\n"

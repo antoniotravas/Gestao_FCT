@@ -21,6 +21,15 @@ h2 { font-size: 1.1rem; margin: 0 0 12px; }
 .sidebar nav a.active { background: var(--accent); color: #fff; }
 .sidebar nav .sep { border-top: 1px solid #2f4257; margin: 8px 0; }
 .sidebar .btn.link { color: #9fb0c3; }
+.who { padding: 0 10px 12px; margin-bottom: 6px; border-bottom: 1px solid #2f4257; font-size: .85rem; }
+.who-nome { color: #fff; font-weight: 600; }
+.who .sub { color: #9fb0c3; }
+.who-curso { margin-top: 6px; color: #cfd8e3; }
+.who-curso a { color: #9cc3f0; }
+.who select { margin-top: 6px; width: 100%; background: #2a3d52; color: #fff; border: 1px solid #2f4257; border-radius: 6px; padding: 5px 6px; font: inherit; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 4px 0; }
+label.check { display: flex; flex-direction: row; gap: 8px; align-items: center; color: var(--text); font-weight: normal; }
+label.check input { width: auto; }
 .sidebar .menu-toggle { display: none; background: #2a3d52; border-color: #2f4257; color: #fff; }
 main { padding: 24px 28px; min-width: 0; }
 
@@ -142,6 +151,8 @@ ul.missing { margin: 8px 0 0; padding-left: 20px; }
   .sidebar nav, .sidebar #logout { display: none; flex-basis: 100%; }
   .sidebar.open nav { display: flex; max-height: calc(100vh - 110px); overflow-y: auto; padding-top: 6px; }
   .sidebar.open #logout { display: block; text-align: left; }
+  .who { order: 3; flex-basis: 100%; display: none; border: 0; padding: 6px 6px 0; }
+  .sidebar.open .who { display: block; }
   .brand { padding: 0 6px; }
   main { padding: 16px; }
   dialog .form-grid, .panel .form-grid { grid-template-columns: 1fr; }

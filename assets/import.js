@@ -188,7 +188,7 @@ export function importFields(schema, entity) {
  * Propõe um mapeamento {entidade: {campo: índiceColuna}}.
  * Prioridade: mapeamento guardado (pelo nome do cabeçalho) > aliases do schema > nome/rótulo do campo.
  */
-export function autoMap(schema, headers, saved = {}, { soEmpresas = false } = {}) {
+export function autoMap(schema, headers, saved = {}, { soEmpresas = false, soAlunos = false } = {}) {
   const H = headers.map(norm);
   // «Entidade - Morada», «Empresa - Telefone» → «morada», «telefone»
   const H2 = soEmpresas ? H.map((h) => h.replace(/^(entidade|entid|empresa)(?=.)/, '')) : H;
@@ -200,7 +200,8 @@ export function autoMap(schema, headers, saved = {}, { soEmpresas = false } = {}
       let idx = savedHeader != null ? headers.indexOf(savedHeader) : -1;
       if (idx < 0 && savedHeader !== null) { // null = o utilizador escolheu «ignorar»
         // sinónimos genéricos («Email», «Telefone»…) só numa lista de empresas, para não confundir com colunas dos alunos
-        for (const alias of [...(f.aliases || []), ...(soEmpresas ? f.aliases_lote || [] : [])]) {
+        // no modelo Excel de alunos os cabeçalhos são os nomes dos campos na aplicação
+        for (const alias of [...(f.aliases || []), ...(soEmpresas ? f.aliases_lote || [] : []), ...(soAlunos && ent === 'alunos' ? [f.label] : [])]) {
           idx = H.indexOf(norm(alias));
           if (idx < 0) idx = H2.indexOf(norm(alias));
           if (idx >= 0 && Object.values(map[ent]).includes(idx)) idx = -1; // cada coluna só num campo

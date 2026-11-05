@@ -3,7 +3,7 @@ import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './
 import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js';
 import { gerarXlsx } from './xlsx.js';
 
-const S = { schema: null, data: {}, settings: {}, idx: {} };
+const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const main = $('#main');
@@ -99,6 +99,8 @@ async function reload() {
   S.data = r.data;
   S.settings = r.settings;
   S.perfil = r.perfil || {};
+  S.diretor = r.diretor || {}; // diretor(a) do curso ativo: vai para o plano e para a ficha da empresa
+  Object.assign(S, { eu: r.eu || {}, cursos: r.cursos || [], curso_id: r.curso_id || 0, autores: r.autores || {} });
   S.logos = r.logos || {};
   S.fases = r.fases || [];
   S.idx = {};
@@ -299,6 +301,7 @@ function viewList(name) {
   return `<div class="page-head"><h1>${e.icon} ${esc(e.label)}</h1>
       <div class="actions">${name === 'empresas' ? `<button class="btn" id="view-toggle">${q.view === 'quadro' ? '☰ Ver lista' : '▦ Ver quadro'}</button>` : ''}
       ${name === 'empresas' ? '<a class="btn" href="#/importar/empresas">📥 Importar</a>' : ''}
+      ${name === 'alunos' ? '<a class="btn" href="#/importar/alunos">📥 Importar alunos</a>' : ''}
       <button class="btn" id="csv">⬇️ Excel</button>
       <button class="btn primary" id="new">+ ${esc(e.singular)}</button></div></div>
     <div class="toolbar">
@@ -403,7 +406,7 @@ function fichaDados(id) {
   const pessoas = rows('pessoas').filter((x) => x.empresa_id === e.id).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
   const estag = rows('colocacoes').filter((c) => c.empresa_id === e.id && inYear(c) && c.estado !== 'Interrompida')
     .map((c) => ({ aluno: get('alunos', c.aluno_id)?.nome || '', inicio: fmtDate(c.data_inicio), fim: fmtDate(c.data_fim), tutor: c.tutor || '' }));
-  const P = S.perfil || {};
+  const P = S.diretor || {};
   return { e, pessoas, estag, P, s: S.settings };
 }
 function fichaTxt(d) {
@@ -656,7 +659,9 @@ const TIPO_ICON = { Telefone: '📞', Email: '✉️', Presencial: '🤝', Video
 const PEND_NADA = 'Nada';
 const PEND_EU = 'Tenho de enviar / fazer algo';
 const PEND_SHORT = { 'Aguardo resposta da empresa': 'Aguardo resposta', [PEND_EU]: 'Tenho de fazer', 'A empresa vai enviar / fazer algo': 'Empresa vai enviar' };
-const isPending = (c) => !!c.pendente && c.pendente !== PEND_NADA;
+/** Contacto registado por mim (os contactos são partilhados entre cursos; os pendentes são de quem os registou). */
+const meu = (c) => !c.utilizador_id || c.utilizador_id === S.eu.id;
+const isPending = (c) => !!c.pendente && c.pendente !== PEND_NADA && meu(c);
 
 function pendBadge(c) {
   if (!isPending(c)) return '';
@@ -696,7 +701,8 @@ function timeline(list) {
     <div class="tl-body">
       <div class="tl-title">${TIPO_ICON[c.tipo] || '📝'} <b>${esc(c.assunto || c.tipo || 'Contacto')}</b>
         ${c.estado && c.estado !== 'Sem decisão' ? badge(c.estado) : ''}
-        <span class="sub">${esc([c.tipo, c.origem === 'A empresa contactou-me' ? 'recebido' : '', c.pessoa && 'com ' + c.pessoa].filter(Boolean).join(' · '))}</span></div>
+        <span class="sub">${esc([c.tipo, c.origem === 'A empresa contactou-me' ? 'recebido' : '', c.pessoa && 'com ' + c.pessoa,
+          !meu(c) && 'registado por ' + (S.autores[c.utilizador_id] || '?')].filter(Boolean).join(' · '))}</span></div>
       ${c.resumo ? `<div class="tl-text">${esc(c.resumo)}</div>` : ''}
       ${c.decisao ? `<div class="tl-text"><b>Acordado:</b> ${esc(c.decisao)}</div>` : ''}
       ${isPending(c) ? `<div class="tl-pend">⏳ ${pendBadge(c)} ${esc(c.proximo_passo || '')} ${dueBadge(c.data_followup)}
@@ -743,19 +749,29 @@ function tutoresDe(empId) {
   return list.sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
 }
 
-/** Professores que podem acompanhar: o utilizador (diretor de curso, dados do perfil) primeiro e depois a lista. */
+/** Professores que podem acompanhar: o(a) diretor(a) do curso (dados do perfil) primeiro e depois a lista. */
 function professoresLista() {
-  const P = S.perfil || {};
+  const P = S.diretor || {};
   const norm = (t) => String(t || '').trim().toLowerCase();
   const eu = P.diretor_curso ? [{ nome: P.diretor_curso, email: P.email_diretor, tel: P.telefone_diretor, eu: true }] : [];
   return [...eu, ...rows('professores').filter((x) => norm(x.nome) !== norm(P.diretor_curso))
     .map((x) => ({ nome: x.nome, email: x.email, tel: x.telefone, grupo: x.grupo }))];
 }
-const profOpcao = (x, i, atual) => `<option value="${i}" ${String(atual || '').trim().toLowerCase() === x.nome.trim().toLowerCase() ? 'selected' : ''}>${esc(x.nome)}${x.eu ? ' (eu — diretor de curso)' : x.grupo ? ' · ' + esc(x.grupo) : ''}</option>`;
+const profOpcao = (x, i, atual) => `<option value="${i}" ${String(atual || '').trim().toLowerCase() === x.nome.trim().toLowerCase() ? 'selected' : ''}>${esc(x.nome)}${x.eu ? (P_EU() ? ' (eu — diretor de curso)' : ' (diretor de curso)') : x.grupo ? ' · ' + esc(x.grupo) : ''}</option>`;
+
+const P_EU = () => !S.diretor.diretor_curso || S.diretor.diretor_curso === S.eu.nome;
 
 const FORM_HOOKS = {
   colocacoes: {
-    setup(form, { isNew } = {}) {
+    setup(form, { isNew, record } = {}) {
+      // só alunos ainda sem afetação no ano letivo (as interrompidas não contam); mantém o aluno da própria afetação
+      const al = $('[name=aluno_id]', form);
+      const afetos = new Set(rows('colocacoes').filter((c) => c.id !== record?.id && c.estado !== 'Interrompida' && inYear(c)).map((c) => c.aluno_id));
+      let escondidos = 0;
+      [...al.options].forEach((o) => { if (o.value && afetos.has(+o.value) && o.value !== String(al.value)) { o.remove(); escondidos++; } });
+      if (escondidos) al.closest('label').querySelector('span').insertAdjacentHTML('beforeend',
+        ` <span class="sub">(${escondidos} já afeto(s) a uma empresa não aparecem)</span>`);
+
       // professor acompanhante: escolher da lista; numa afetação nova vem preenchido com o utilizador
       const prof = $('[name=professor_acompanhante]', form);
       const profEmail = $('[name=email_professor]', form);
@@ -957,7 +973,7 @@ async function carregarLogo(k) {
 const planoAtividades = (colId) => rows('atividades').filter((a) => a.colocacao_id === Number(colId)).sort((a, b) => a.id - b.id);
 function planoCtx(c, plano) {
   return { aluno: get('alunos', c.aluno_id) || {}, empresa: get('empresas', c.empresa_id) || {}, col: c,
-    plano: plano || {}, atividades: planoAtividades(c.id), s: S.settings, p: S.perfil };
+    plano: plano || {}, atividades: planoAtividades(c.id), s: S.settings, p: S.diretor };
 }
 /** Texto por omissão (Definições ou modelo) para os campos variáveis. */
 const planoDefaults = (c) => ({
@@ -1092,11 +1108,14 @@ const field = (f, v) => `<label class="${f.type === 'textarea' ? 'wide' : ''}"><
 
 function viewSettings() {
   // divide as definições em grupos ({ group: '...' } no schema.json)
-  const groups = [{ title: 'Escola', items: [] }];
+  const groups = [{ title: 'Escola', items: [], curso: false }];
   for (const s of S.schema.settings) {
-    if (s.group) groups.push({ title: s.group, items: [] });
+    if (s.group) groups.push({ title: s.group, items: [], curso: s.scope === 'curso' });
     else groups.at(-1).items.push(s);
   }
+  const admin = !!S.eu.admin;
+  const visiveis = groups.filter((g) => (g.curso ? !!S.curso_id : admin));
+  const nomeCurso = S.cursos.find((c) => c.id === S.curso_id)?.nome || '';
   const P = S.perfil || {};
   const pf = Object.fromEntries(S.schema.perfil.map((f) => [f.name, f]));
   const lembOn = P.lembretes_ativos === 'Sim';
@@ -1105,31 +1124,33 @@ function viewSettings() {
       <p class="sub">Os lembretes trazem as tarefas, os pendentes com empresas, as entrevistas e as reuniões que se aproximam.
         São enviados <b>só para si</b>, no máximo uma vez por dia — a aplicação não envia emails a empresas nem a alunos.</p>
       <div class="form-grid">
-        <label><span>O meu nome (diretor/a de curso)</span><input name="diretor_curso" value="${esc(P.diretor_curso || '')}"></label>
+        <label><span>O meu nome</span><input name="diretor_curso" value="${esc(P.diretor_curso || '')}" required></label>
         ${field(pf.email_diretor, P.email_diretor)}
         ${field(pf.telefone_diretor, P.telefone_diretor)}
         ${field(pf.lembretes_ativos, P.lembretes_ativos || 'Não')}
         ${field(pf.lembretes_dias, P.lembretes_dias)}
       </div>
-      <details ${P.smtp_host ? 'open' : ''} style="margin:6px 0 12px"><summary><b>Servidor de envio (SMTP)</b> <span class="sub">— recomendado; sem isto usa a função mail() do alojamento</span></summary>
+      ${admin ? `<details ${P.smtp_host ? 'open' : ''} style="margin:6px 0 12px"><summary><b>Servidor de envio (SMTP)</b> <span class="sub">— recomendado; sem isto usa a função mail() do alojamento</span></summary>
         <p class="sub">Ex.: Gmail — servidor <code>smtp.gmail.com</code>, porta 465, segurança ssl, utilizador = o seu endereço Gmail e uma
           <b>palavra-passe de aplicação</b> (Conta Google → Segurança → Palavras-passe de aplicações). Outlook/Office 365: <code>smtp.office365.com</code>, porta 587, tls.</p>
         <div class="form-grid">
           ${['smtp_host', 'smtp_porta', 'smtp_seguranca', 'smtp_utilizador', 'smtp_password', 'smtp_remetente'].map((k) => field(pf[k], P[k] || (k === 'smtp_seguranca' ? 'ssl' : ''))).join('')}
-        </div></details>
+        </div><p class="sub">O servidor SMTP é usado para os lembretes de todos os utilizadores.</p></details>` : ''}
       <div class="actions"><button class="btn primary">Guardar perfil</button>
         <button type="button" class="btn" id="mail-test">✉️ Enviar email de teste</button>
         <span class="sub">${lembOn ? '🔔 Lembretes ativos' : '🔕 Lembretes desativados'}</span></div>
-      <details style="margin-top:12px"><summary class="sub">Envio diário mesmo sem abrir a aplicação</summary>
+      ${admin ? `<details style="margin-top:12px"><summary class="sub">Envio diário mesmo sem abrir a aplicação</summary>
         <p class="sub">Sem mais nada, o lembrete do dia é enviado na primeira vez que abre a aplicação. Para o receber todas as manhãs,
           crie no alojamento (cPanel → Tarefas Cron) uma tarefa diária, por exemplo às 8h:<br>
-          <code>php ${esc(location.pathname.replace(/[^/]*$/, ''))}api.php lembretes</code> <span>(use o caminho completo da pasta no servidor)</span></p></details>
+          <code>php ${esc(location.pathname.replace(/[^/]*$/, ''))}api.php lembretes</code> <span>(use o caminho completo da pasta no servidor;
+          envia os lembretes de todos os utilizadores que os tenham ativos)</span></p></details>` : ''}
     </form>
-    <form class="panel" id="settings"><h2>🏫 Escola e curso</h2>
-      <p class="sub">Usados no plano de estágio. Os objetivos e o horário são o texto por omissão — em cada plano pode alterá-los.</p>
-      ${groups.map((g, i) => `${i ? `<h3>${esc(g.title)}</h3>` : ''}<div class="form-grid">${g.items.map((s) => field(s, S.settings[s.name])).join('')}</div>`).join('')}
-      <button class="btn primary">Guardar</button></form>
-    <div class="panel"><h2>🖼️ Logótipos dos documentos</h2>
+    ${visiveis.length ? `<form class="panel" id="settings"><h2>🏫 ${admin ? 'Escola e curso' : 'Curso'}</h2>
+      <p class="sub">Usados no plano de estágio. Os objetivos e o horário são o texto por omissão — em cada plano pode alterá-los.
+        ${nomeCurso ? `Os dados do curso aplicam-se ao curso <b>${esc(nomeCurso)}</b>.` : ''}</p>
+      ${visiveis.map((g, i) => `${i || !admin ? `<h3>${esc(g.title)}</h3>` : ''}<div class="form-grid">${g.items.map((s) => field(s, S.settings[s.name])).join('')}</div>`).join('')}
+      <button class="btn primary">Guardar</button></form>` : ''}
+    ${admin ? `<div class="panel"><h2>🖼️ Logótipos dos documentos</h2>
       <p class="sub">Usados no cabeçalho de todas as páginas e na capa do plano de estágio. Imagem JPG ou PNG (máx. 5 MB);
         de preferência com fundo branco ou transparente.</p>
       <div class="logos">${Object.entries(S.logos).map(([k, l]) => `<div class="logo-card">
@@ -1138,7 +1159,7 @@ function viewSettings() {
         <div class="actions"><button class="btn small" data-logo-up="${k}">🔁 Mudar imagem</button>
           ${l.personalizado ? `<button class="btn small" data-logo-reset="${k}">Repor original</button>` : ''}</div>
       </div>`).join('')}</div>
-      <input type="file" id="logo-file" accept=".jpg,.jpeg,.png" hidden></div>
+      <input type="file" id="logo-file" accept=".jpg,.jpeg,.png" hidden></div>` : ''}
     <div class="grid two">
       <form class="panel" id="pw"><h2>Alterar palavra-passe</h2>
         <label style="display:block;margin-bottom:10px"><span class="sub">Atual</span><input type="password" name="atual" required autocomplete="current-password"></label>
@@ -1148,19 +1169,19 @@ function viewSettings() {
         <p class="sub">Excel com a listagem breve e uma folha por tabela (alunos, empresas, pessoas de contacto, contactos,
           protocolos, entrevistas, afetações, atividades, planos, tarefas, reuniões).</p>
         <p><button class="btn primary" type="button" id="exp-all">📊 Exportar todas as tabelas (Excel)</button></p>
-        <p class="sub">Descarrega todos os dados num ficheiro JSON. Faça-o regularmente. Os ficheiros dos protocolos não vão na cópia
-          (estão na pasta <code>data/protocolos</code> do servidor).</p>
+        <p class="sub">Descarrega ${admin ? 'todos os dados (todos os cursos)' : 'os dados do seu curso e os partilhados'} num ficheiro JSON.
+          Faça-o regularmente. Os ficheiros dos protocolos não vão na cópia (ficam na pasta <code>protocolos</code> junto à base de dados, no servidor).</p>
         <a class="btn" href="api.php?a=export" download>⬇️ Descarregar cópia (JSON)</a></div>
     </div>`;
 }
 
 function bindSettings() {
-  $('#settings').onsubmit = async (ev) => {
+  if ($('#settings')) $('#settings').onsubmit = async (ev) => {
     ev.preventDefault();
     try {
       await api('settings', { body: Object.fromEntries(new FormData(ev.target)) });
       await reload();
-      toast('Definições guardadas.');
+      toast('Definições guardadas.'); renderWho();
     } catch (err) { toast(err.message, true); }
   };
   const savePerfil = async () => {
@@ -1169,7 +1190,7 @@ function bindSettings() {
   };
   $('#perfil').onsubmit = async (ev) => {
     ev.preventDefault();
-    try { await savePerfil(); await reload(); toast('Perfil guardado.'); render(); } catch (err) { toast(err.message, true); }
+    try { await savePerfil(); await reload(); toast('Perfil guardado.'); renderWho(); render(); } catch (err) { toast(err.message, true); }
   };
   $('#mail-test').onclick = async () => {
     const b = $('#mail-test');
@@ -1187,7 +1208,7 @@ function bindSettings() {
   let logoK = null;
   const lf = $('#logo-file');
   $$('[data-logo-up]').forEach((b) => (b.onclick = () => { logoK = b.dataset.logoUp; lf.value = ''; lf.click(); }));
-  lf.onchange = async () => {
+  if (lf) lf.onchange = async () => {
     const file = lf.files[0];
     if (!file || !logoK) return;
     const fd = new FormData();
@@ -1226,21 +1247,46 @@ const imp = { file: null, sheets: [], sheet: 0, map: null, criar: { alunos: true
 const MAP_KEY = 'fct-import-map';
 const loadSavedMap = () => { try { return JSON.parse(localStorage.getItem(MAP_KEY)) || {}; } catch { return {}; } };
 
-/** Entrar/sair do modo «lista de empresas» (a partir da página Empresas): só empresas e sinónimos genéricos de colunas. */
+/** Modos: «empresas» (a partir da página Empresas: só empresas, sinónimos genéricos), «alunos» (página Alunos: só alunos,
+ *  com modelo Excel) ou geral (ficheiro com alunos, empresas e afetações). */
 function modoImport(modo) {
-  const so = modo === 'empresas';
-  if (imp.soEmpresas === so) return;
-  Object.assign(imp, { soEmpresas: so, file: null, sheets: [], sheet: 0, map: null, result: null,
-    criar: so ? { alunos: false, empresas: true, colocacoes: false } : { alunos: true, empresas: true, colocacoes: false },
-    estado: so ? 'Por contactar' : 'Parceira', soVazios: true });
+  const m = ['empresas', 'alunos'].includes(modo) ? modo : '';
+  if ((imp.modo ?? '') === m && imp.soEmpresas !== undefined) return;
+  Object.assign(imp, { modo: m, soEmpresas: m === 'empresas', soAlunos: m === 'alunos', file: null, sheets: [], sheet: 0, map: null, result: null,
+    criar: { alunos: m !== 'empresas', empresas: m !== 'alunos', colocacoes: false },
+    estado: m === 'empresas' ? 'Por contactar' : 'Parceira', soVazios: true });
 }
-const impMap = (headers) => autoMap(S.schema, headers, imp.soEmpresas ? {} : loadSavedMap(), { soEmpresas: imp.soEmpresas });
+const impMap = (headers) => autoMap(S.schema, headers, imp.modo ? {} : loadSavedMap(), { soEmpresas: imp.soEmpresas, soAlunos: imp.soAlunos });
+
+/** Modelo Excel para importar alunos: folha «Alunos» com os cabeçalhos certos e folha «Instruções». */
+function modeloAlunos() {
+  const fields = importFields(S.schema, 'alunos');
+  const formato = (f) => ({ date: 'Data (dd/mm/aaaa)', email: 'Email', tel: 'Telefone (só algarismos)', textarea: 'Texto livre' }[f.type] || 'Texto');
+  const exemplo = { numero: '12345', nome: 'Maria da Silva Santos', turma: '12.º A', data_nascimento: '15/03/2008', email: 'maria.santos@exemplo.pt',
+    telefone: '912345678', codigo_postal: '2615-205', encarregado: 'José Santos', contacto_encarregado: '913456789' };
+  descarregar(gerarXlsx([
+    { nome: 'Alunos', linhas: [fields.map((f) => f.label)] },
+    { nome: 'Instruções', linhas: [
+      ['Coluna', 'Obrigatória', 'Formato', 'Exemplo'],
+      ...fields.map((f) => [f.label, f.required ? 'Sim' : '', formato(f), exemplo[f.name] || '']),
+      [], ['Preencha uma linha por aluno na folha «Alunos». Não altere os cabeçalhos (pode apagar colunas que não use).'],
+      ['Os alunos já existentes são atualizados pelo nº de processo (ou pelo nome) — não ficam duplicados.'],
+      ['O ano letivo e o curso escolhem-se na aplicação, no momento da importação.'],
+    ] },
+  ]), 'Modelo importação alunos.xlsx');
+}
 
 function viewImport(modo) {
   modoImport(modo);
   const sh = imp.sheets[imp.sheet];
   const ano = imp.ano ?? S.settings.ano_letivo ?? '';
-  let html = imp.soEmpresas
+  let html = imp.soAlunos
+    ? `<div class="page-head"><div><div class="sub"><a href="#/lista/alunos">← Alunos</a></div><h1>📥 Importar alunos</h1>
+      <div class="sub">Carregue a lista de alunos em Excel (.xlsx) ou CSV, uma linha por aluno. Use o modelo para ter as colunas certas —
+      ou o seu próprio ficheiro: as colunas são reconhecidas automaticamente e pode ajustar a correspondência.
+      Os alunos ficam no curso <b>${esc(S.cursos.find((c) => c.id === S.curso_id)?.nome || '—')}</b>.</div></div>
+      <div class="actions"><button class="btn primary" id="imp-modelo" type="button">⬇️ Descarregar modelo Excel</button></div></div>`
+    : imp.soEmpresas
     ? `<div class="page-head"><div><div class="sub"><a href="#/lista/empresas">← Empresas</a></div><h1>📥 Importar empresas</h1>
       <div class="sub">Carregue uma lista de empresas em Excel (.xlsx) ou CSV, uma linha por empresa (ex.: Empresa, Status, Contacto, Email, Telefone, Morada).
       As colunas são reconhecidas automaticamente; os contactos ficam também em «Pessoas de contacto» da empresa.</div></div></div>`
@@ -1260,10 +1306,10 @@ function viewImport(modo) {
   const estOpts = ent('empresas').fields.find((f) => f.name === 'estado').options;
   html += `<div class="panel"><h2>2. O que importar</h2>
       <div class="grid two">
-        <div>${IMPORT_TARGETS.map((t) => `<label style="display:block;margin-bottom:6px"><input type="checkbox" data-criar="${t}" style="width:auto" ${imp.criar[t] ? 'checked' : ''}> ${esc(IMP_LABEL[t])}</label>`).join('')}</div>
+        <div>${IMPORT_TARGETS.filter((t) => !imp.soAlunos || t === 'alunos').map((t) => `<label style="display:block;margin-bottom:6px"><input type="checkbox" data-criar="${t}" style="width:auto" ${imp.criar[t] ? 'checked' : ''}> ${esc(IMP_LABEL[t])}</label>`).join('')}</div>
         <div><label style="display:${imp.soEmpresas ? 'none' : 'block'};margin-bottom:10px"><span class="sub">Ano letivo dos alunos${imp.criar.colocacoes ? ' e afetações' : ''}</span>
             <input id="imp-ano" value="${esc(ano)}" placeholder="2026/2027"></label>
-          <label style="display:block"><span class="sub">Estado das empresas novas${imp.map?.empresas?.estado != null ? ' (quando o ficheiro não indica)' : ''}</span>
+          <label style="display:${imp.soAlunos ? 'none' : 'block'}"><span class="sub">Estado das empresas novas${imp.map?.empresas?.estado != null ? ' (quando o ficheiro não indica)' : ''}</span>
             <select id="imp-estado">${estOpts.map((o) => `<option ${o === imp.estado ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></label></div>
       </div>
       ${imp.soEmpresas ? `<label style="display:block;margin-top:8px"><input type="checkbox" id="imp-vazios" style="width:auto" ${imp.soVazios ? 'checked' : ''}>
@@ -1308,6 +1354,7 @@ function viewImport(modo) {
 
 function bindImport(modo) {
   modoImport(modo);
+  if ($('#imp-modelo')) $('#imp-modelo').onclick = modeloAlunos;
   $('#imp-file').onchange = async (ev) => {
     const f = ev.target.files[0];
     if (!f) return;
@@ -1348,7 +1395,7 @@ function bindImport(modo) {
         so_vazios: imp.soEmpresas && imp.soVazios,
         linhas: buildLines(S.schema, sh.rows, imp.map),
       } });
-      if (!simular && !imp.soEmpresas) {
+      if (!simular && !imp.modo) {
         // guarda a correspondência (pelo nome do cabeçalho) para a próxima importação
         const saved = loadSavedMap();
         for (const t of IMPORT_TARGETS) {
@@ -1386,6 +1433,7 @@ function renderNav(route) {
     [`#/lista/reunioes`, ent('reunioes').icon, ent('reunioes').label],
     'sep',
     ['#/importar', '📥', 'Importar'],
+    ...(S.eu.admin ? [['#/utilizadores', '👥', 'Utilizadores']] : []),
     ['#/definicoes', '⚙️', 'Definições'],
   ];
   const cur = '#/' + route.split('/').slice(0, 2).join('/').replace(/^ver\//, 'lista/');
@@ -1403,6 +1451,7 @@ function render() {
     ver: [() => viewDetail(a, b), () => bindDetail(a, b)],
     plano: [() => viewPlano(a), () => bindPlano(a)],
     definicoes: [viewSettings, bindSettings],
+    utilizadores: [viewUtilizadores, bindUtilizadores],
     importar: [() => viewImport(a), () => bindImport(a)],
     pendentes: [viewPending, bindPending],
     listagem: [viewListagem, bindListagem],
@@ -1430,31 +1479,130 @@ new MutationObserver(() => labelTables(main)).observe(main, { childList: true, s
 function showLogin(setup) {
   $('#app').hidden = true;
   $('#login').hidden = false;
-  $('#login-pw2').hidden = !setup;
-  $('#login-pw2').required = setup;
+  for (const id of ['#login-pw2', '#login-nome']) { $(id).hidden = !setup; $(id).required = setup; }
   $('#login-pw').autocomplete = setup ? 'new-password' : 'current-password';
   $('#login-msg').textContent = setup
-    ? 'Primeira utilização: defina a palavra-passe de acesso (mín. 8 caracteres).'
-    : 'Introduza a palavra-passe.';
-  $('#login-btn').textContent = setup ? 'Definir e entrar' : 'Entrar';
+    ? 'Primeira utilização: crie a conta de administrador (palavra-passe com mín. 8 caracteres).'
+    : 'Introduza o utilizador e a palavra-passe.';
+  $('#login-btn').textContent = setup ? 'Criar e entrar' : 'Entrar';
   $('#login-form').onsubmit = async (ev) => {
     ev.preventDefault();
     const pw = $('#login-pw').value;
     $('#login-err').textContent = '';
     if (setup && pw !== $('#login-pw2').value) { $('#login-err').textContent = 'As palavras-passe não coincidem.'; return; }
     try {
-      await api(setup ? 'setup' : 'login', { body: { password: pw } });
+      await api(setup ? 'setup' : 'login', { body: { nome: $('#login-nome').value, login: $('#login-user').value, password: pw } });
       $('#login-form').reset();
       await start();
     } catch (err) { $('#login-err').textContent = err.message; }
   };
-  $('#login-pw').focus();
+  (setup ? $('#login-nome') : $('#login-user')).focus();
+}
+
+/** Utilizador com sessão iniciada e curso em que está a trabalhar (o admin e quem tem vários cursos pode mudar). */
+function renderWho() {
+  const { eu, cursos, curso_id } = S;
+  $('#who').innerHTML = `<div class="who-nome">${esc(eu.nome || '')}</div>
+    <div class="sub">${eu.admin ? 'Administrador' : 'Diretor(a) de curso'}</div>
+    ${cursos.length > 1 ? `<select id="curso-sel" aria-label="Curso">${cursos.map((c) => `<option value="${c.id}" ${c.id === curso_id ? 'selected' : ''}>${esc(c.nome)}</option>`).join('')}</select>`
+      : cursos.length ? `<div class="who-curso">${esc(cursos[0].nome)}</div>`
+      : `<div class="who-curso">${eu.admin ? '<a href="#/utilizadores">Crie o primeiro curso</a>' : 'Sem curso atribuído'}</div>`}`;
+  const sel = $('#curso-sel');
+  if (sel) sel.onchange = async () => {
+    try { await api('curso_ativo', { body: { curso_id: +sel.value } }); await reload(); renderWho(); render(); toast('Curso: ' + sel.selectedOptions[0].text); }
+    catch (err) { toast(err.message, true); }
+  };
+}
+
+/* ---------- Utilizadores e cursos (administrador) ---------- */
+const US = { lista: null, cursos: [], papeis: {} };
+async function carregarUtilizadores() {
+  const r = await api('utilizadores');
+  Object.assign(US, { lista: r.utilizadores, cursos: r.cursos, papeis: r.papeis });
+}
+function viewUtilizadores() {
+  if (!S.eu.admin) return '<p>Só o administrador tem acesso a esta página.</p>';
+  if (!US.lista) { carregarUtilizadores().then(render).catch((err) => toast(err.message, true)); return '<p class="sub">A carregar…</p>'; }
+  const nomeCurso = Object.fromEntries(US.cursos.map((c) => [c.id, c.nome]));
+  return `<div class="page-head"><div><h1>👥 Utilizadores e cursos</h1>
+      <div class="sub">Os diretores de curso só veem os alunos (e afetações, protocolos, entrevistas, planos, reuniões, tarefas) dos seus cursos.
+        Empresas, pessoas de contacto, professores e contactos são partilhados por todos.</div></div>
+      <div class="actions"><button class="btn primary" id="u-novo">➕ Novo utilizador</button></div></div>
+    <div class="panel"><h2>Utilizadores</h2>
+      <table><thead><tr><th>Nome</th><th>Utilizador</th><th>Papel</th><th>Cursos</th><th>Último acesso</th><th>Estado</th></tr></thead>
+      <tbody>${US.lista.map((u) => `<tr class="click" data-u="${u.id}">
+        <td><b>${esc(u.nome)}</b>${u.id === S.eu.id ? ' <span class="badge info">eu</span>' : ''}</td><td>${esc(u.login)}</td>
+        <td>${esc(US.papeis[u.papel] || u.papel)}</td><td>${u.cursos.map((c) => esc(nomeCurso[c] || '')).join('<br>') || '<span class="sub">—</span>'}</td>
+        <td>${fmtDateTime(u.ultimo_acesso)}</td><td>${u.ativo ? badge('Ativo') : '<span class="badge bad">Desativado</span>'}</td></tr>`).join('')}</tbody></table></div>
+    <div class="panel"><div class="section-head"><h2>Cursos</h2><button class="btn small" id="c-novo">➕ Novo curso</button></div>
+      <p class="sub">Pode criar um curso por turma/ciclo (ex.: «TGPSI 2024-2027»). O nome aparece no plano de estágio e pode ser alterado em Definições.</p>
+      <table><thead><tr><th>Curso</th><th>Alunos</th><th>Diretores</th><th></th></tr></thead>
+      <tbody>${US.cursos.map((c) => `<tr><td><b>${esc(c.nome)}</b></td><td>${c.alunos}</td>
+        <td>${US.lista.filter((u) => u.cursos.includes(c.id)).map((u) => esc(u.nome)).join(', ') || '<span class="sub">—</span>'}</td>
+        <td class="actions"><button class="btn small" data-c-ren="${c.id}">Mudar nome</button>
+          ${+c.registos ? '' : `<button class="btn small danger" data-c-del="${c.id}">Apagar</button>`}</td></tr>`).join('')
+        || '<tr><td colspan="4" class="empty">Ainda não há cursos.</td></tr>'}</tbody></table></div>`;
+}
+function formUtilizador(u) {
+  const novo = !u;
+  u ||= { nome: '', login: '', papel: 'diretor', ativo: 1, cursos: S.curso_id ? [S.curso_id] : [] };
+  dlg.innerHTML = `<form method="dialog"><h2>${novo ? 'Novo utilizador' : 'Editar utilizador'}</h2>
+    <div class="form-grid">
+      <label><span>Nome <span class="req">*</span></span><input name="nome" value="${esc(u.nome)}" required></label>
+      <label><span>Utilizador (email ou nome sem espaços) <span class="req">*</span></span><input name="login" value="${esc(u.login)}" required autocomplete="off"></label>
+      <label><span>Papel</span><select name="papel">${Object.entries(US.papeis).map(([k, l]) => `<option value="${k}" ${k === u.papel ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+      <label><span>${novo ? 'Palavra-passe <span class="req">*</span>' : 'Nova palavra-passe <span class="sub">(vazio = manter)</span>'}</span>
+        <input name="password" type="password" minlength="8" ${novo ? 'required' : ''} autocomplete="new-password"></label>
+      <label class="wide"><span>Cursos <span class="sub">— diretor(a) de curso destes cursos (o administrador vê todos; os que marcar aqui são os cursos de que também é diretor)</span></span>
+        <div class="checks">${US.cursos.map((c) => `<label class="check"><input type="checkbox" name="cursos" value="${c.id}" ${u.cursos.includes(c.id) ? 'checked' : ''}> ${esc(c.nome)}</label>`).join('') || '<span class="sub">Crie primeiro um curso.</span>'}</div></label>
+      <label class="check wide"><input type="checkbox" name="ativo" ${u.ativo ? 'checked' : ''}> Conta ativa (pode entrar na aplicação)</label>
+    </div>
+    <p class="erro" id="form-err"></p>
+    <div class="dlg-actions">${novo || u.id === S.eu.id ? '' : '<button type="button" class="btn danger" id="u-del" style="margin-right:auto">Apagar</button>'}
+      <button type="button" class="btn" id="dlg-cancel">Cancelar</button><button type="submit" class="btn primary">Guardar</button></div></form>`;
+  const form = $('form', dlg);
+  $('#dlg-cancel', dlg).onclick = () => dlg.close();
+  form.onsubmit = async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(form);
+    const body = { id: u.id || 0, nome: fd.get('nome'), login: fd.get('login'), papel: fd.get('papel'), password: fd.get('password'),
+      ativo: fd.get('ativo') ? 1 : 0, cursos: fd.getAll('cursos').map(Number) };
+    try { await api('utilizador_guardar', { body }); dlg.close(); await carregarUtilizadores(); await reload(); renderWho(); render(); toast('Utilizador guardado.'); }
+    catch (err) { $('#form-err', dlg).textContent = err.message; }
+  };
+  const del = $('#u-del', dlg);
+  if (del) del.onclick = async () => {
+    if (!confirm(`Apagar a conta de «${u.nome}»? Os contactos que registou ficam na aplicação. (Em alternativa, pode só desativar a conta.)`)) return;
+    try { await api('utilizador_apagar', { id: u.id, body: {} }); dlg.close(); await carregarUtilizadores(); render(); toast('Utilizador apagado.'); }
+    catch (err) { $('#form-err', dlg).textContent = err.message; }
+  };
+  dlg.showModal();
+}
+function bindUtilizadores() {
+  if (!S.eu.admin || !US.lista) return;
+  $('#u-novo').onclick = () => formUtilizador(null);
+  $$('[data-u]').forEach((tr) => (tr.onclick = () => formUtilizador(US.lista.find((u) => u.id === +tr.dataset.u))));
+  const cursoGuardar = async (id, atual) => {
+    const nome = prompt(id ? 'Novo nome do curso:' : 'Nome do novo curso:', atual || '');
+    if (!nome?.trim()) return;
+    try { await api('curso_guardar', { body: { id, nome } }); await carregarUtilizadores(); await reload(); renderWho(); render(); toast('Curso guardado.'); }
+    catch (err) { toast(err.message, true); }
+  };
+  $('#c-novo').onclick = () => cursoGuardar(0);
+  $$('[data-c-ren]').forEach((b) => (b.onclick = () => cursoGuardar(+b.dataset.cRen, US.cursos.find((c) => c.id === +b.dataset.cRen)?.nome)));
+  $$('[data-c-del]').forEach((b) => (b.onclick = async () => {
+    if (!confirm('Apagar este curso (não tem dados)?')) return;
+    try { await api('curso_apagar', { id: b.dataset.cDel, body: {} }); await carregarUtilizadores(); await reload(); renderWho(); render(); toast('Curso apagado.'); }
+    catch (err) { toast(err.message, true); }
+  }));
 }
 
 async function start() {
   await reload();
+  US.lista = null; // outra sessão: voltar a pedir a lista de utilizadores
   $('#login').hidden = true;
   $('#app').hidden = false;
+  renderWho();
   render();
   // lembrete diário por email (o servidor só envia se estiver ativo e ainda não tiver enviado hoje)
   if (S.perfil.lembretes_ativos === 'Sim') api('lembretes_auto', { body: {} }).catch(() => {});

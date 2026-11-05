@@ -36,7 +36,7 @@ function nif_valido(string $n): bool {
 }
 
 function importar(array $p): array {
-    global $entities;
+    global $entities, $CTX;
     $ano    = trim((string)($p['ano_letivo'] ?? '')) ?: (setting('ano_letivo') ?? '');
     $criar  = $p['criar'] ?? [];
     $simular = !empty($p['simular']);
@@ -63,7 +63,9 @@ function importar(array $p): array {
             if ($n = nif_digitos($e['nif'])) $empNif[$n] ??= (int)$e['id'];
             if ($m = mb_strtolower(trim((string)$e['email']))) $empEmail[$m] ??= (int)$e['id'];
         }
-        foreach ($pdo->query('SELECT id, numero, nome FROM alunos') as $a) {
+        $st = $pdo->prepare('SELECT id, numero, nome FROM alunos WHERE curso_id = ?'); // só os alunos do curso ativo
+        $st->execute([$CTX['c']]);
+        foreach ($st as $a) {
             if (trim((string)$a['numero']) !== '') $alNum[trim((string)$a['numero'])] = (int)$a['id'];
             $alNome[norm_txt($a['nome'])] = ['id' => (int)$a['id'], 'numero' => trim((string)$a['numero'])];
         }
@@ -281,7 +283,9 @@ function importar_upsert(string $table, ?int $id, array $data, array $defaults, 
     }
 
     if (!$id) {
+        global $CTX;
         $row += $defaults;
+        if (scoped($table)) $row['curso_id'] = $CTX['c'];
         $cols = array_keys($row);
         $pdo->prepare("INSERT INTO $table (" . implode(',', $cols) . ') VALUES (:' . implode(', :', $cols) . ')')->execute($row);
         $id = (int)$pdo->lastInsertId();
