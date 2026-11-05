@@ -1,5 +1,17 @@
-# Bloqueia acesso direto a ficheiros sensíveis (Apache)
+# Bloqueia acesso direto a ficheiros sensíveis (Apache e LiteSpeed)
 Options -Indexes
 <FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|db|md)$|^config(\.sample)?\.php$">
   Require all denied
 </FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(lib|data)(/|$) - [F,L]
+  RewriteRule (^|/)config(\.sample)?\.php$ - [F,L]
+  RewriteRule \.(sqlite|sqlite-wal|sqlite-shm|db|md)$ - [F,L]
+</IfModule>
+
+# LiteSpeed (alguns alojamentos ignoram as regras acima): mod_alias
+RedirectMatch 403 ^/(lib|data)(/|$)
+RedirectMatch 403 /config(\.sample)?\.php$
+RedirectMatch 403 \.(sqlite|sqlite-wal|sqlite-shm|db|md)$
