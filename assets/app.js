@@ -884,11 +884,11 @@ function empresasBoard(list) {
   const opts = ent('empresas').fields.find((f) => f.name === 'estado').options;
   return `<div class="board">${opts.map((o) => {
     const items = list.filter((e) => (e.estado || 'Por contactar') === o);
-    return `<div class="bcol"><h3>${badge(o)} <span class="sub">${items.length}</span></h3>
+    return `<div class="bcol" data-col="${esc(o)}"><h3>${badge(o)} <span class="sub">${items.length}</span></h3>
       ${items.map((e) => {
         const last = empContacts(e.id)[0];
         const p = empPending(e.id)[0];
-        return `<div class="bcard" data-go="#/ver/empresas/${e.id}"><b>${esc(e.nome)}</b>
+        return `<div class="bcard" data-go="#/ver/empresas/${e.id}" data-emp="${e.id}" draggable="true" title="Arraste para outra coluna para mudar o estado"><b>${esc(e.nome)}</b>
           <div class="sub">${esc(e.localidade || '')}</div>
           <div class="sub">${last ? `Último contacto ${relDays(last.data)}` : 'Sem contactos registados'}</div>
           ${p ? `<div>${pendBadge(p)} ${dueBadge(p.data_followup)}</div>` : ''}
@@ -900,6 +900,27 @@ function empresasBoard(list) {
 function bindBoard() {
   $$('.bcard[data-go]').forEach((c) => (c.onclick = (ev) => { if (ev.target.tagName !== 'SELECT') location.hash = c.dataset.go; }));
   $$('[data-board-state]').forEach((s) => (s.onchange = () => quickSave('empresas', { id: +s.dataset.boardState, estado: s.value }, 'Estado atualizado.')));
+
+  // arrastar um cartão para outra coluna muda o estado da empresa (no telemóvel usa-se o seletor do cartão)
+  let arrastado = null;
+  $$('.bcard[data-emp]').forEach((c) => {
+    c.ondragstart = (ev) => { arrastado = c; ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', c.dataset.emp); c.classList.add('dragging'); };
+    c.ondragend = () => { c.classList.remove('dragging'); $$('.bcol.drop').forEach((x) => x.classList.remove('drop')); arrastado = null; };
+  });
+  $$('.bcol[data-col]').forEach((col) => {
+    col.ondragover = (ev) => { if (!arrastado) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; col.classList.add('drop'); };
+    col.ondragleave = (ev) => { if (!col.contains(ev.relatedTarget)) col.classList.remove('drop'); };
+    col.ondrop = (ev) => {
+      ev.preventDefault();
+      col.classList.remove('drop');
+      const id = +ev.dataTransfer.getData('text/plain');
+      const emp = get('empresas', id);
+      if (!emp || (emp.estado || 'Por contactar') === col.dataset.col) return;
+      col.querySelector('.empty')?.remove();
+      col.append(arrastado); // mostra logo a mudança; a gravação volta a desenhar o quadro
+      quickSave('empresas', { id, estado: col.dataset.col }, `«${emp.nome}» → ${col.dataset.col}`);
+    };
+  });
 }
 
 /* Página «Pendentes»: tudo o que está à espera de alguém, por prazo */

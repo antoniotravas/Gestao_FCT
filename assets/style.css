@@ -219,6 +219,10 @@ details.panel > summary { cursor: pointer; }
 .bcard { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin-bottom: 8px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; }
 .bcard:hover { border-color: var(--accent); }
 .bcard select { margin-top: 6px; font-size: .85rem; padding: 3px 6px; }
+.bcard[draggable="true"] { cursor: grab; }
+.bcard.dragging { opacity: .45; cursor: grabbing; }
+.bcol { transition: background .12s, box-shadow .12s; }
+.bcol.drop { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
 @media (max-width: 800px) { .tl-item { grid-template-columns: 1fr; gap: 4px; } }
 input[type=checkbox] { width: auto; }
 dialog label.check span { display: flex; gap: 8px; align-items: center; }
