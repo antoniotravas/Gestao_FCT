@@ -1,0 +1,66 @@
+<!--
+  Modelo do protocolo com entidades (Mod. P058).
+  Pode editar livremente o texto. Os campos entre {{chavetas}} são preenchidos pela aplicação:
+
+  Escola (Definições):   {{escola}} {{escola_morada}} {{escola_representante}} {{escola_cargo_representante}}
+                         {{escola_localidade}} {{curso}} {{curso_portaria}}
+  Empresa (ficha):       {{empresa_nome}} {{empresa_nif}} {{empresa_morada}} {{empresa_representante}} {{empresa_cargo_representante}}
+  Protocolo (ficha):     {{ano_letivo}} {{horas_total}} {{horas_diarias}} {{horas_diarias_extenso}} {{dias_semana}}
+                         {{dias_semana_extenso}} {{data_inicio_extenso}} {{estagiarios}}
+                         ({{estagiarios}} = «um estagiário», «dois estagiários, do terceiro ano», …)
+  Campos vazios aparecem como uma linha para preencher à mão.
+-->
+<header class="doc-head">
+  <div class="doc-escola">{{escola}}</div>
+  <div class="doc-cursos">Cursos Profissionais</div>
+</header>
+
+<h1>Protocolo com Entidades</h1>
+
+<p><b>Entre:</b></p>
+<p><b>Primeiro Outorgante:</b> Entidade de Acolhimento: {{empresa_nome}}, NIPC {{empresa_nif}}, sita em {{empresa_morada}}, representada por {{empresa_representante}}, {{empresa_cargo_representante}}.</p>
+<p><b>Segundo Outorgante:</b> Escola: {{escola}}, sita em {{escola_morada}}, representada por {{escola_representante}}, {{escola_cargo_representante}}.</p>
+<p>É celebrado o presente Protocolo de Formação em Contexto de Trabalho, que se subordinará às cláusulas seguintes:</p>
+
+<section class="clausula"><h3>Primeira<br><i>Conceito</i></h3>
+<p>O presente protocolo tem por objetivo estabelecer, entre as duas entidades, as atividades a desenvolver pelo formando durante a Formação em Contexto de Trabalho doravante designada por FCT. A formação prática, estruturada num plano de trabalho, visa a aquisição e o desenvolvimento de competências técnicas, relacionais, organizacionais e de gestão de carreira relevantes para a qualificação profissional a adquirir, para a inserção no mundo do trabalho e para a formação ao longo da vida.</p></section>
+
+<section class="clausula"><h3>Segunda<br><i>Seguro Escolar</i></h3>
+<p>Durante o período de estágio, os alunos formandos estão abrangidos pelo Seguro Escolar, regulamentado pela Portaria n.º 413/99 de 8 de Junho e não representam quaisquer encargos para a Entidade de Acolhimento.</p></section>
+
+<section class="clausula"><h3>Terceira<br><i>Duração da Formação em Contexto de Trabalho</i></h3>
+<p>a) O primeiro e o segundo outorgantes irão promover no ano letivo {{ano_letivo}}, a FCT do Curso Profissional de {{curso}}, criado pela {{curso_portaria}} que garante qualificação nível IV da União Europeia.</p>
+<p>b) O estágio comporta um total de {{horas_total}} horas, as quais decorrerão até {{horas_diarias}} ({{horas_diarias_extenso}}) horas diárias e até {{dias_semana}} ({{dias_semana_extenso}}) dias por semana.</p></section>
+
+<section class="clausula"><h3>Quarta<br><i>Início da Formação em Contexto de Trabalho</i></h3>
+<p>A FCT inicia a {{data_inicio_extenso}} e é formalizada no plano de trabalho anexo a este protocolo.</p></section>
+
+<section class="clausula"><h3>Quinta<br><i>Número de Estagiários</i></h3>
+<p>O primeiro outorgante compromete-se a acolher {{estagiarios}}.</p></section>
+
+<section class="clausula"><h3>Sexta<br><i>Professor Orientador da FCT</i></h3>
+<p>O segundo outorgante nomeará um Professor Orientador da FCT, que trabalhará em estreita articulação com o tutor referido na cláusula Sétima e cumprirá as competências previstas no artigo 4º, ponto 2 da Portaria 74-A/2013 de 15 de fevereiro.</p></section>
+
+<section class="clausula"><h3>Sétima<br><i>Tutor</i></h3>
+<p>O primeiro outorgante designará um tutor de estágio, que será responsável pelo acompanhamento e avaliação do formando no período de estágio correspondente.</p></section>
+
+<section class="clausula"><h3>Oitava<br><i>Deveres do primeiro outorgante</i></h3>
+<p>O primeiro outorgante colocará à disposição dos formandos do segundo outorgante os meios humanos, técnicos e de ambiente de trabalho (não remunerado) necessários à organização, acompanhamento e avaliação da sua formação em contexto de trabalho.</p></section>
+
+<section class="clausula"><h3>Nona<br><i>Deveres do Segundo Outorgante</i></h3>
+<p>a) O segundo outorgante entregará ao primeiro outorgante um dossier individualizado de estágio contendo o plano de trabalho devidamente assinado por todas as partes (Tutor, Professor Orientador da FCT, aluno e respetivo Encarregado de Educação no caso de ser menor) que contemple a planificação e a calendarização das tarefas de estágio, perfil e competências a desenvolver nas diferentes fases do mesmo, conforme previamente acordado entre todas as partes bem como fichas de registo de assiduidade, atividades e avaliação dos alunos-formandos.</p>
+<p>b) O segundo outorgante, deve informar os alunos-formandos, que os mesmos devem respeitar a organização do trabalho na entidade de estágio e utilizar com zelo os bens, equipamentos e instalações e que serão responsabilizados por quaisquer danos causados; não devem utilizar sem prévia autorização a informação a que tiverem acesso durante o estágio; serem assíduos, pontuais e estabelecerem boas relações interpessoais.</p></section>
+
+<section class="clausula"><h3>Décima<br><i>Reuniões</i></h3>
+<p>a) No âmbito do presente protocolo, as partes acordam em reunir periodicamente para análise conjunta da implementação e resultados da FCT bem como definição de medidas para superação de dificuldades dos formandos estagiários.</p>
+<p>b) Os alunos estagiários podem também ser convocados, com conhecimento do respetivo Tutor da entidade de acolhimento, para reuniões de acompanhamento na escola que serão contabilizadas como horas de FCT.</p></section>
+
+<section class="clausula"><h3>Décima Primeira<br><i>Disposições Finais e Transitórias</i></h3>
+<p>a) As acções que vierem a ser lançadas na sequência deste protocolo são implementadas numa óptica de confiança mútua e, sempre que possível, num espírito de reciprocidade.</p>
+<p>b) Quaisquer dúvidas de interpretação e lacunas do presente protocolo serão dirimidas por acordo entre ambas as partes.</p>
+<p>c) Este protocolo entra em vigor na data da sua assinatura.</p></section>
+
+<p class="doc-data">{{escola_localidade}}, ___ /___ /_____</p>
+<div class="sign"><div>O Primeiro Outorgante:</div><div>O Segundo Outorgante:</div></div>
+
+<footer class="doc-foot">Mod. P058<br><small>Licenciado a {{escola}}</small></footer>

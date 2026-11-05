@@ -1,0 +1,6 @@
+data/*.sqlite*
+config.php
+*.xlsx
+*.pdf
+data/protocolos/
+data/logos/

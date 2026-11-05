@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestão FCT</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div id="login" class="login" hidden>
+    <form class="login-box" id="login-form">
+      <h1>Gestão FCT</h1>
+      <p id="login-msg">Introduza a palavra-passe.</p>
+      <input type="password" name="password" id="login-pw" autocomplete="current-password" required minlength="8">
+      <input type="password" name="password2" id="login-pw2" placeholder="Repetir palavra-passe" hidden>
+      <button type="submit" class="btn primary" id="login-btn">Entrar</button>
+      <p class="erro" id="login-err"></p>
+    </form>
+  </div>
+
+  <div id="app" class="app" hidden>
+    <aside class="sidebar">
+      <div class="brand">Gestão <b>FCT</b></div>
+      <button class="btn menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav">☰ Menu</button>
+      <nav id="nav"></nav>
+      <button class="btn link" id="logout">Terminar sessão</button>
+    </aside>
+    <main id="main"></main>
+  </div>
+
+  <dialog id="dlg"></dialog>
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="assets/app.js"></script>
+</body>
+</html>

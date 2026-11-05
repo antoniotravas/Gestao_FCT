@@ -1,0 +1,1408 @@
+{
+  "entities": {
+    "empresas": {
+      "label": "Empresas",
+      "singular": "Empresa",
+      "icon": "🏢",
+      "display": "{nome}",
+      "order": "nome",
+      "fields": [
+        {
+          "name": "nome",
+          "label": "Nome",
+          "type": "text",
+          "required": true,
+          "list": true,
+          "aliases": [
+            "Entid_Denominação",
+            "Entidade",
+            "Empresa",
+            "Denominação",
+            "Nome empresa"
+          ],
+          "aliases_lote": [
+            "Empresa",
+            "Entidade",
+            "Nome",
+            "Denominação",
+            "Designação social",
+            "Designação",
+            "Nome da entidade"
+          ]
+        },
+        {
+          "name": "nif",
+          "label": "NIF",
+          "type": "text",
+          "aliases": [
+            "Entd_Nif",
+            "Entid_Nif",
+            "NIF",
+            "NIPC"
+          ],
+          "aliases_lote": [
+            "NIF",
+            "NIPC",
+            "Contribuinte"
+          ]
+        },
+        {
+          "name": "setor",
+          "label": "Setor / Atividade principal",
+          "type": "text",
+          "list": true,
+          "aliases": [
+            "Entid_Atividade_Principal",
+            "Atividade principal",
+            "Setor",
+            "CAE"
+          ],
+          "aliases_lote": [
+            "Atividade principal",
+            "Atividade",
+            "Setor"
+          ]
+        },
+        {
+          "name": "natureza_juridica",
+          "label": "Natureza jurídica",
+          "type": "text",
+          "aliases": [
+            "Entid_Natureza_jur",
+            "Natureza jurídica"
+          ],
+          "aliases_lote": [
+            "Natureza jurídica"
+          ]
+        },
+        {
+          "name": "tipo",
+          "label": "Tipo de entidade",
+          "type": "text",
+          "aliases": [
+            "entid_tipo",
+            "Tipo entidade"
+          ]
+        },
+        {
+          "name": "localidade",
+          "label": "Localidade / Concelho (sede)",
+          "type": "text",
+          "list": true,
+          "aliases": [
+            "entid_concelho",
+            "entid_localidade",
+            "Concelho empresa"
+          ],
+          "aliases_lote": [
+            "Localidade",
+            "Concelho"
+          ]
+        },
+        {
+          "name": "morada",
+          "label": "Morada da sede (protocolo)",
+          "type": "text",
+          "aliases": [
+            "entid_morada",
+            "Morada empresa"
+          ],
+          "aliases_lote": [
+            "Morada",
+            "Endereço"
+          ]
+        },
+        {
+          "name": "codigo_postal",
+          "label": "Código postal (sede)",
+          "type": "text",
+          "aliases": [
+            "entid_cod_postal",
+            "Código postal empresa"
+          ],
+          "aliases_lote": [
+            "Código postal",
+            "CP",
+            "Cód. Postal",
+            "Cod Postal"
+          ]
+        },
+        {
+          "name": "telefone",
+          "label": "Telefone",
+          "type": "tel",
+          "list": true,
+          "aliases": [
+            "entid_telefone",
+            "Telefone empresa"
+          ],
+          "aliases_lote": [
+            "Telefone",
+            "Telemóvel",
+            "Contacto telefónico",
+            "Tel"
+          ]
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "email",
+          "aliases": [
+            "entid_email",
+            "Email empresa"
+          ],
+          "aliases_lote": [
+            "Email",
+            "E-mail",
+            "Mail",
+            "Endereço eletrónico"
+          ]
+        },
+        {
+          "name": "website",
+          "label": "Website",
+          "type": "text",
+          "aliases": [
+            "entid_website",
+            "Website",
+            "Site"
+          ],
+          "aliases_lote": [
+            "Website",
+            "Site",
+            "Página"
+          ]
+        },
+        {
+          "name": "responsavel",
+          "label": "Pessoa de contacto / tutor",
+          "type": "text",
+          "list": true,
+          "aliases": [
+            "Tutor_nome",
+            "Tutor",
+            "Pessoa de contacto"
+          ],
+          "aliases_lote": [
+            "Contacto",
+            "Pessoa de contacto",
+            "Responsável",
+            "Nome do contacto"
+          ]
+        },
+        {
+          "name": "cargo_responsavel",
+          "label": "Cargo",
+          "type": "text",
+          "aliases": [
+            "Tutor_cargo"
+          ]
+        },
+        {
+          "name": "email_responsavel",
+          "label": "Email da pessoa de contacto",
+          "type": "email",
+          "aliases": [
+            "Tutor_email"
+          ]
+        },
+        {
+          "name": "telefone_responsavel",
+          "label": "Telefone da pessoa de contacto",
+          "type": "tel",
+          "aliases": [
+            "Tutor_telefone"
+          ]
+        },
+        {
+          "name": "representante_legal",
+          "label": "Representante no protocolo (vazio = pessoa de contacto)",
+          "type": "text",
+          "aliases_lote": [
+            "Representante",
+            "Representante legal",
+            "Representante - Nome",
+            "Representante Entidade - Nome",
+            "Representante nome"
+          ]
+        },
+        {
+          "name": "cargo_representante",
+          "label": "Cargo do representante",
+          "type": "text",
+          "aliases_lote": [
+            "Representante - Cargo",
+            "Cargo do representante",
+            "Cargo representante",
+            "Representante Entidade - Cargo"
+          ]
+        },
+        {
+          "name": "vagas",
+          "label": "Vagas",
+          "type": "number",
+          "list": true
+        },
+        {
+          "name": "estado",
+          "label": "Estado",
+          "type": "select",
+          "list": true,
+          "default": "Por contactar",
+          "options": [
+            "Por contactar",
+            "Em contacto",
+            "Parceira",
+            "Sem disponibilidade"
+          ],
+          "aliases_lote": [
+            "Status",
+            "Estado",
+            "Situação"
+          ]
+        },
+        {
+          "name": "notas",
+          "label": "Notas",
+          "type": "textarea",
+          "aliases_lote": [
+            "Notas",
+            "Observações",
+            "Obs",
+            "Aluno",
+            "Alunos"
+          ]
+        }
+      ]
+    },
+    "alunos": {
+      "label": "Alunos",
+      "singular": "Aluno",
+      "icon": "🎓",
+      "display": "{nome}",
+      "order": "nome",
+      "fields": [
+        {
+          "name": "numero",
+          "label": "Nº processo",
+          "type": "text",
+          "list": true,
+          "aliases": [
+            "Processo",
+            "Nº processo",
+            "Número",
+            "Nº"
+          ]
+        },
+        {
+          "name": "nome",
+          "label": "Nome",
+          "type": "text",
+          "required": true,
+          "list": true,
+          "aliases": [
+            "nome",
+            "Nome aluno",
+            "Nome do aluno"
+          ]
+        },
+        {
+          "name": "ano_letivo",
+          "label": "Ano letivo",
+          "type": "text",
+          "list": true,
+          "default": "setting:ano_letivo"
+        },
+        {
+          "name": "turma",
+          "label": "Turma",
+          "type": "text",
+          "list": true,
+          "aliases": [
+            "Turma"
+          ]
+        },
+        {
+          "name": "curso",
+          "label": "Curso",
+          "type": "text",
+          "list": true,
+          "aliases": [
+            "Curso"
+          ]
+        },
+        {
+          "name": "data_nascimento",
+          "label": "Data de nascimento",
+          "type": "date",
+          "aliases": [
+            "data nascim",
+            "Data de nascimento",
+            "Data nascimento"
+          ]
+        },
+        {
+          "name": "cc",
+          "label": "Identificação (CC / passaporte / AR)",
+          "type": "text",
+          "aliases": [
+            "identificação",
+            "identificacao",
+            "CC",
+            "Nº CC",
+            "Documento"
+          ]
+        },
+        {
+          "name": "validade_identificacao",
+          "label": "Validade da identificação",
+          "type": "date",
+          "aliases": [
+            "validade",
+            "Validade CC"
+          ]
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "email",
+          "list": true,
+          "aliases": [
+            "email",
+            "Email aluno"
+          ]
+        },
+        {
+          "name": "telefone",
+          "label": "Telemóvel",
+          "type": "tel",
+          "list": true,
+          "aliases": [
+            "telemovel",
+            "telemóvel",
+            "Telefone"
+          ]
+        },
+        {
+          "name": "morada",
+          "label": "Morada",
+          "type": "text",
+          "aliases": [
+            "morada"
+          ]
+        },
+        {
+          "name": "localidade",
+          "label": "Localidade",
+          "type": "text",
+          "aliases": [
+            "Localidade"
+          ]
+        },
+        {
+          "name": "concelho",
+          "label": "Concelho",
+          "type": "text",
+          "aliases": [
+            "concelho"
+          ]
+        },
+        {
+          "name": "codigo_postal",
+          "label": "Código postal",
+          "type": "text",
+          "aliases": [
+            "cod_postal",
+            "Código postal"
+          ]
+        },
+        {
+          "name": "encarregado",
+          "label": "Encarregado de educação",
+          "type": "text",
+          "aliases": [
+            "Nome_EE",
+            "Encarregado de educação",
+            "EE"
+          ]
+        },
+        {
+          "name": "contacto_encarregado",
+          "label": "Telemóvel do EE",
+          "type": "tel",
+          "aliases": [
+            "Telemovel_EE",
+            "Telefone_EE",
+            "Contacto EE"
+          ]
+        },
+        {
+          "name": "email_encarregado",
+          "label": "Email do EE",
+          "type": "email",
+          "aliases": [
+            "Email_EE"
+          ]
+        },
+        {
+          "name": "morada_encarregado",
+          "label": "Morada do EE",
+          "type": "text",
+          "aliases": [
+            "Morada_EE"
+          ]
+        },
+        {
+          "name": "concelho_encarregado",
+          "label": "Concelho do EE",
+          "type": "text",
+          "aliases": [
+            "Concelho_EE"
+          ]
+        },
+        {
+          "name": "codigo_postal_encarregado",
+          "label": "Código postal do EE",
+          "type": "text",
+          "aliases": [
+            "Cod_postal_EE"
+          ]
+        },
+        {
+          "name": "entidade_proposta",
+          "label": "Entidade proposta / em negociação",
+          "type": "text",
+          "aliases": [
+            "Entidade Nova?",
+            "Entidade proposta"
+          ]
+        },
+        {
+          "name": "notas",
+          "label": "Notas",
+          "type": "textarea",
+          "aliases": [
+            "Observações",
+            "Observacoes",
+            "Notas"
+          ]
+        }
+      ]
+    },
+    "pessoas": {
+      "label": "Pessoas de contacto",
+      "singular": "Pessoa de contacto",
+      "icon": "👤",
+      "display": "{nome}",
+      "order": "nome",
+      "fields": [
+        {
+          "name": "empresa_id",
+          "label": "Empresa",
+          "type": "ref",
+          "ref": "empresas",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "nome",
+          "label": "Nome",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "cargo",
+          "label": "Cargo / profissão",
+          "type": "text",
+          "list": true
+        },
+        {
+          "name": "telefone",
+          "label": "Telefone",
+          "type": "tel",
+          "list": true
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "email",
+          "list": true
+        },
+        {
+          "name": "tutor",
+          "label": "Pode ser tutor",
+          "type": "select",
+          "list": true,
+          "default": "Sim",
+          "options": [
+            "Sim",
+            "Não"
+          ]
+        },
+        {
+          "name": "notas",
+          "label": "Notas",
+          "type": "textarea"
+        }
+      ]
+    },
+    "professores": {
+      "label": "Professores acompanhantes",
+      "singular": "Professor acompanhante",
+      "icon": "🧑‍🏫",
+      "display": "{nome}",
+      "order": "nome",
+      "fields": [
+        {
+          "name": "nome",
+          "label": "Nome",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "type": "email",
+          "list": true
+        },
+        {
+          "name": "telefone",
+          "label": "Telemóvel",
+          "type": "tel",
+          "list": true
+        },
+        {
+          "name": "grupo",
+          "label": "Grupo / disciplina",
+          "type": "text",
+          "list": true
+        },
+        {
+          "name": "notas",
+          "label": "Notas",
+          "type": "textarea"
+        }
+      ]
+    },
+    "contactos": {
+      "label": "Contactos",
+      "singular": "Contacto",
+      "icon": "📞",
+      "display": "{empresa_id} — {data}",
+      "order": "data DESC, id DESC",
+      "fields": [
+        {
+          "name": "empresa_id",
+          "label": "Empresa",
+          "type": "ref",
+          "ref": "empresas",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "data",
+          "label": "Data",
+          "type": "date",
+          "required": true,
+          "list": true,
+          "default": "today"
+        },
+        {
+          "name": "tipo",
+          "label": "Tipo",
+          "type": "select",
+          "list": true,
+          "default": "Telefone",
+          "options": [
+            "Telefone",
+            "Email",
+            "Presencial",
+            "Videochamada",
+            "Mensagem",
+            "Outro"
+          ]
+        },
+        {
+          "name": "origem",
+          "label": "Quem iniciou",
+          "type": "select",
+          "default": "Contactei a empresa",
+          "options": [
+            "Contactei a empresa",
+            "A empresa contactou-me"
+          ]
+        },
+        {
+          "name": "pessoa",
+          "label": "Falou com",
+          "type": "text"
+        },
+        {
+          "name": "assunto",
+          "label": "Assunto",
+          "type": "text",
+          "list": true
+        },
+        {
+          "name": "resumo",
+          "label": "O que foi falado",
+          "type": "textarea"
+        },
+        {
+          "name": "decisao",
+          "label": "O que foi acordado",
+          "type": "textarea",
+          "list": true
+        },
+        {
+          "name": "estado",
+          "label": "Resultado",
+          "type": "select",
+          "list": true,
+          "default": "Sem decisão",
+          "options": [
+            "Sem decisão",
+            "Interessada",
+            "Aceite",
+            "Recusado"
+          ]
+        },
+        {
+          "name": "pendente",
+          "label": "Fica pendente",
+          "type": "select",
+          "list": true,
+          "default": "Nada",
+          "options": [
+            "Nada",
+            "Aguardo resposta da empresa",
+            "Tenho de enviar / fazer algo",
+            "A empresa vai enviar / fazer algo"
+          ]
+        },
+        {
+          "name": "proximo_passo",
+          "label": "O que está pendente (ex.: enviar protocolo)",
+          "type": "text",
+          "list": true
+        },
+        {
+          "name": "data_followup",
+          "label": "Prazo / voltar a ver em",
+          "type": "date",
+          "list": true
+        }
+      ]
+    },
+    "protocolos": {
+      "label": "Protocolos",
+      "singular": "Protocolo",
+      "icon": "📄",
+      "display": "Protocolo {empresa_id} {aluno_id}",
+      "order": "id DESC",
+      "fields": [
+        {
+          "name": "empresa_id",
+          "label": "Empresa",
+          "type": "ref",
+          "ref": "empresas",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "aluno_id",
+          "label": "Aluno (opcional)",
+          "type": "ref",
+          "ref": "alunos"
+        },
+        {
+          "name": "ano_letivo",
+          "label": "Ano letivo",
+          "type": "text",
+          "list": true,
+          "default": "setting:ano_letivo"
+        },
+        {
+          "name": "data_envio",
+          "label": "Data de envio",
+          "type": "date",
+          "list": true
+        },
+        {
+          "name": "data_assinatura",
+          "label": "Data de assinatura",
+          "type": "date",
+          "list": true
+        },
+        {
+          "name": "estado",
+          "label": "Estado",
+          "type": "select",
+          "list": true,
+          "default": "Por enviar",
+          "options": [
+            "Por enviar",
+            "Enviado",
+            "Assinado",
+            "Devolvido",
+            "Anulado"
+          ]
+        },
+        {
+          "name": "notas",
+          "label": "Notas",
+          "type": "textarea"
+        }
+      ]
+    },
+    "entrevistas": {
+      "label": "Entrevistas",
+      "singular": "Entrevista",
+      "icon": "🗓️",
+      "display": "{aluno_id} @ {empresa_id}",
+      "order": "data_hora DESC",
+      "fields": [
+        {
+          "name": "aluno_id",
+          "label": "Aluno",
+          "type": "ref",
+          "ref": "alunos",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "empresa_id",
+          "label": "Empresa",
+          "type": "ref",
+          "ref": "empresas",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "data_hora",
+          "label": "Data e hora",
+          "type": "datetime-local",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "local",
+          "label": "Local",
+          "type": "text",
+          "list": true
+        },
+        {
+          "name": "entrevistador",
+          "label": "Entrevistador",
+          "type": "text"
+        },
+        {
+          "name": "estado",
+          "label": "Estado",
+          "type": "select",
+          "list": true,
+          "default": "Agendada",
+          "options": [
+            "Agendada",
+            "Realizada",
+            "Adiada",
+            "Cancelada"
+          ]
+        },
+        {
+          "name": "resultado",
+          "label": "Resultado",
+          "type": "select",
+          "list": true,
+          "default": "Em análise",
+          "options": [
+            "Em análise",
+            "Aprovado",
+            "Não aprovado"
+          ]
+        },
+        {
+          "name": "notas",
+          "label": "Notas",
+          "type": "textarea"
+        }
+      ]
+    },
+    "colocacoes": {
+      "label": "Afetações",
+      "singular": "Afetação",
+      "icon": "🔗",
+      "display": "{aluno_id} → {empresa_id}",
+      "order": "id DESC",
+      "fields": [
+        {
+          "name": "aluno_id",
+          "label": "Aluno",
+          "type": "ref",
+          "ref": "alunos",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "empresa_id",
+          "label": "Empresa",
+          "type": "ref",
+          "ref": "empresas",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "local_estagio",
+          "label": "Local de estágio (estabelecimento; vazio = sede)",
+          "type": "text",
+          "list": true,
+          "aliases": [
+            "Local de estágio",
+            "Local estágio",
+            "Estabelecimento"
+          ]
+        },
+        {
+          "name": "morada_estagio",
+          "label": "Morada do local de estágio",
+          "type": "text",
+          "aliases": [
+            "Morada estágio",
+            "Morada do local de estágio"
+          ]
+        },
+        {
+          "name": "codigo_postal_estagio",
+          "label": "Código postal do local de estágio",
+          "type": "text",
+          "aliases": [
+            "Código postal estágio"
+          ]
+        },
+        {
+          "name": "localidade_estagio",
+          "label": "Localidade do local de estágio",
+          "type": "text",
+          "aliases": [
+            "Localidade estágio"
+          ]
+        },
+        {
+          "name": "ano_letivo",
+          "label": "Ano letivo",
+          "type": "text",
+          "list": true,
+          "default": "setting:ano_letivo"
+        },
+        {
+          "name": "tutor",
+          "label": "Tutor na empresa",
+          "type": "text",
+          "list": true,
+          "aliases": [
+            "Tutor_nome",
+            "Tutor"
+          ]
+        },
+        {
+          "name": "cargo_tutor",
+          "label": "Cargo do tutor",
+          "type": "text",
+          "aliases": [
+            "Tutor_cargo"
+          ]
+        },
+        {
+          "name": "contacto_tutor",
+          "label": "Telefone do tutor",
+          "type": "tel",
+          "aliases": [
+            "Tutor_telefone"
+          ]
+        },
+        {
+          "name": "email_tutor",
+          "label": "Email do tutor",
+          "type": "email",
+          "aliases": [
+            "Tutor_email"
+          ]
+        },
+        {
+          "name": "professor_acompanhante",
+          "label": "Professor acompanhante",
+          "type": "text",
+          "aliases": [
+            "Prof_Acomp",
+            "Professor acompanhante"
+          ]
+        },
+        {
+          "name": "email_professor",
+          "label": "Email do professor",
+          "type": "email",
+          "aliases": [
+            "porf_Email",
+            "prof_Email"
+          ]
+        },
+        {
+          "name": "telefone_professor",
+          "label": "Telefone do professor",
+          "type": "tel",
+          "aliases": [
+            "prof_Telemóvel",
+            "prof_Telefone"
+          ]
+        },
+        {
+          "name": "data_inicio",
+          "label": "Início",
+          "type": "date",
+          "list": true,
+          "aliases": [
+            "Data início",
+            "Inicio"
+          ]
+        },
+        {
+          "name": "data_fim",
+          "label": "Fim",
+          "type": "date",
+          "list": true,
+          "aliases": [
+            "Data fim",
+            "Fim"
+          ]
+        },
+        {
+          "name": "horario",
+          "label": "Horário",
+          "type": "text",
+          "aliases": [
+            "Horário"
+          ]
+        },
+        {
+          "name": "horas_previstas",
+          "label": "Horas previstas",
+          "type": "number",
+          "list": true,
+          "aliases": [
+            "Horas",
+            "Horas previstas"
+          ]
+        },
+        {
+          "name": "horas_diarias",
+          "label": "Horas por dia",
+          "type": "number",
+          "default": "7"
+        },
+        {
+          "name": "estado",
+          "label": "Estado",
+          "type": "select",
+          "list": true,
+          "default": "Planeada",
+          "options": [
+            "Planeada",
+            "Em curso",
+            "Concluída",
+            "Interrompida"
+          ]
+        },
+        {
+          "name": "notas",
+          "label": "Notas",
+          "type": "textarea"
+        }
+      ]
+    },
+    "atividades": {
+      "label": "Plano de atividades",
+      "singular": "Atividade",
+      "icon": "🛠️",
+      "display": "{descricao}",
+      "order": "colocacao_id, id",
+      "fields": [
+        {
+          "name": "colocacao_id",
+          "label": "Afetação",
+          "type": "ref",
+          "ref": "colocacoes",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "descricao",
+          "label": "Atividade",
+          "type": "textarea",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "competencias",
+          "label": "Competências a desenvolver",
+          "type": "textarea"
+        },
+        {
+          "name": "mes",
+          "label": "Mês (no plano de estágio)",
+          "type": "text",
+          "list": true
+        },
+        {
+          "name": "observacoes",
+          "label": "Observações (no plano de estágio)",
+          "type": "text"
+        },
+        {
+          "name": "horas_estimadas",
+          "label": "Horas estimadas",
+          "type": "number",
+          "list": true
+        },
+        {
+          "name": "estado",
+          "label": "Estado",
+          "type": "select",
+          "list": true,
+          "default": "Prevista",
+          "options": [
+            "Prevista",
+            "Em curso",
+            "Concluída"
+          ]
+        }
+      ]
+    },
+    "planos": {
+      "label": "Planos de estágio",
+      "singular": "Plano de estágio",
+      "icon": "📘",
+      "display": "Plano {colocacao_id}",
+      "order": "id DESC",
+      "hidden": true,
+      "unique": [
+        "colocacao_id"
+      ],
+      "fields": [
+        {
+          "name": "colocacao_id",
+          "label": "Afetação",
+          "type": "ref",
+          "ref": "colocacoes",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "data_documento",
+          "label": "Data do documento (vazio = deixar em branco para preencher à mão)",
+          "type": "date"
+        },
+        {
+          "name": "horario",
+          "label": "Horário (vazio = afetação ou Definições)",
+          "type": "text"
+        },
+        {
+          "name": "objetivos_gerais",
+          "label": "Objetivos gerais (um por linha; vazio = Definições)",
+          "type": "textarea"
+        },
+        {
+          "name": "objetivos_especificos",
+          "label": "Objetivos específicos (um por linha; vazio = Definições)",
+          "type": "textarea"
+        },
+        {
+          "name": "informacao_adicional",
+          "label": "Informação adicional (secção 6.5, opcional)",
+          "type": "textarea"
+        }
+      ]
+    },
+    "tarefas": {
+      "label": "Tarefas",
+      "singular": "Tarefa",
+      "icon": "☑️",
+      "display": "{titulo}",
+      "order": "estado DESC, data_limite IS NULL, data_limite, id",
+      "fields": [
+        {
+          "name": "titulo",
+          "label": "Tarefa",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "data_limite",
+          "label": "Prazo",
+          "type": "date",
+          "list": true
+        },
+        {
+          "name": "estado",
+          "label": "Estado",
+          "type": "select",
+          "list": true,
+          "default": "Por fazer",
+          "options": [
+            "Por fazer",
+            "Feita"
+          ]
+        },
+        {
+          "name": "empresa_id",
+          "label": "Empresa (opcional)",
+          "type": "ref",
+          "ref": "empresas",
+          "list": true
+        },
+        {
+          "name": "aluno_id",
+          "label": "Aluno (opcional)",
+          "type": "ref",
+          "ref": "alunos"
+        },
+        {
+          "name": "notas",
+          "label": "Notas",
+          "type": "textarea"
+        }
+      ]
+    },
+    "reunioes": {
+      "label": "Reuniões de avaliação",
+      "singular": "Reunião",
+      "icon": "🤝",
+      "display": "{tipo} — {colocacao_id}",
+      "order": "data_hora DESC",
+      "fields": [
+        {
+          "name": "colocacao_id",
+          "label": "Afetação",
+          "type": "ref",
+          "ref": "colocacoes",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "data_hora",
+          "label": "Data e hora",
+          "type": "datetime-local",
+          "required": true,
+          "list": true
+        },
+        {
+          "name": "tipo",
+          "label": "Tipo",
+          "type": "select",
+          "list": true,
+          "default": "Intercalar",
+          "options": [
+            "Inicial",
+            "Intercalar",
+            "Final",
+            "Outra"
+          ]
+        },
+        {
+          "name": "local",
+          "label": "Local",
+          "type": "text"
+        },
+        {
+          "name": "participantes",
+          "label": "Participantes",
+          "type": "text"
+        },
+        {
+          "name": "estado",
+          "label": "Estado",
+          "type": "select",
+          "list": true,
+          "default": "Agendada",
+          "options": [
+            "Agendada",
+            "Realizada",
+            "Cancelada"
+          ]
+        },
+        {
+          "name": "classificacao",
+          "label": "Classificação (0-20)",
+          "type": "number",
+          "list": true,
+          "min": 0,
+          "max": 20
+        },
+        {
+          "name": "notas",
+          "label": "Notas / Ata",
+          "type": "textarea"
+        }
+      ]
+    }
+  },
+  "settings": [
+    {
+      "name": "escola",
+      "label": "Escola",
+      "placeholder": "Escola Secundária de Gago Coutinho"
+    },
+    {
+      "name": "morada_escola",
+      "label": "Morada da escola",
+      "placeholder": "Rua Heróis da Aviação"
+    },
+    {
+      "name": "codigo_postal_escola",
+      "label": "Código postal da escola",
+      "placeholder": "2615-205"
+    },
+    {
+      "name": "concelho_escola",
+      "label": "Concelho da escola",
+      "placeholder": "Vila Franca de Xira (Alverca do Ribatejo)"
+    },
+    {
+      "name": "localidade_escola",
+      "label": "Localidade (data dos documentos)",
+      "placeholder": "Alverca do Ribatejo"
+    },
+    {
+      "name": "telefone_escola",
+      "label": "Telefone da escola"
+    },
+    {
+      "name": "ano_letivo",
+      "label": "Ano letivo",
+      "placeholder": "2026/2027"
+    },
+    {
+      "name": "diretor_curso",
+      "label": "Diretor(a) de curso"
+    },
+    {
+      "group": "Curso (plano de estágio)"
+    },
+    {
+      "name": "curso",
+      "label": "Curso",
+      "placeholder": "Técnico de Gestão e Programação de Sistemas Informáticos"
+    },
+    {
+      "name": "area_formacao",
+      "label": "Área de formação",
+      "placeholder": "481 — Ciências Informáticas"
+    },
+    {
+      "name": "duracao_total",
+      "label": "Duração total (horas)",
+      "placeholder": "3 200"
+    },
+    {
+      "name": "duracao_sociocultural",
+      "label": "Componente sociocultural (horas)",
+      "placeholder": "1 000"
+    },
+    {
+      "name": "duracao_cientifica",
+      "label": "Componente científica (horas)",
+      "placeholder": "500"
+    },
+    {
+      "name": "duracao_tecnica",
+      "label": "Componente técnica (horas)",
+      "placeholder": "1 700"
+    },
+    {
+      "name": "horas_fct",
+      "label": "Formação em contexto de trabalho (horas)",
+      "placeholder": "300"
+    },
+    {
+      "name": "horario_fct",
+      "label": "Horário por omissão",
+      "placeholder": "7 a 9 horas diárias, 5 dias por semana"
+    },
+    {
+      "name": "objetivos_gerais",
+      "label": "Objetivos gerais (um por linha)",
+      "type": "textarea"
+    },
+    {
+      "name": "objetivos_especificos",
+      "label": "Objetivos específicos (um por linha)",
+      "type": "textarea"
+    }
+  ],
+  "perfil": [
+    {
+      "name": "email_diretor",
+      "label": "O meu email (recebe os lembretes)",
+      "type": "email"
+    },
+    {
+      "name": "telefone_diretor",
+      "label": "O meu telemóvel (vai para o plano quando não há professor acompanhante)",
+      "type": "tel"
+    },
+    {
+      "name": "lembretes_ativos",
+      "label": "Enviar lembretes por email",
+      "type": "select",
+      "options": [
+        "Não",
+        "Sim"
+      ]
+    },
+    {
+      "name": "lembretes_dias",
+      "label": "Avisar com quantos dias de antecedência",
+      "type": "number",
+      "placeholder": "2"
+    },
+    {
+      "name": "smtp_host",
+      "label": "Servidor SMTP (vazio = função mail() do servidor)",
+      "placeholder": "smtp.gmail.com"
+    },
+    {
+      "name": "smtp_porta",
+      "label": "Porta SMTP",
+      "type": "number",
+      "placeholder": "465"
+    },
+    {
+      "name": "smtp_seguranca",
+      "label": "Segurança",
+      "type": "select",
+      "options": [
+        "ssl",
+        "tls",
+        "nenhuma"
+      ]
+    },
+    {
+      "name": "smtp_utilizador",
+      "label": "Utilizador SMTP"
+    },
+    {
+      "name": "smtp_password",
+      "label": "Palavra-passe SMTP",
+      "type": "password",
+      "secret": true
+    },
+    {
+      "name": "smtp_remetente",
+      "label": "Remetente (vazio = utilizador SMTP)",
+      "type": "email"
+    }
+  ]
+}

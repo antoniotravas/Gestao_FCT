@@ -1,0 +1,5 @@
+# Bloqueia acesso direto a ficheiros sensíveis (Apache)
+Options -Indexes
+<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|db|md)$|^config(\.sample)?\.php$">
+  Require all denied
+</FilesMatch>
