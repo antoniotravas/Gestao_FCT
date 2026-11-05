@@ -1582,19 +1582,45 @@ function bindUtilizadores() {
   if (!S.eu.admin || !US.lista) return;
   $('#u-novo').onclick = () => formUtilizador(null);
   $$('[data-u]').forEach((tr) => (tr.onclick = () => formUtilizador(US.lista.find((u) => u.id === +tr.dataset.u))));
-  const cursoGuardar = async (id, atual) => {
-    const nome = prompt(id ? 'Novo nome do curso:' : 'Nome do novo curso:', atual || '');
-    if (!nome?.trim()) return;
-    try { await api('curso_guardar', { body: { id, nome } }); await carregarUtilizadores(); await reload(); renderWho(); render(); toast('Curso guardado.'); }
-    catch (err) { toast(err.message, true); }
-  };
-  $('#c-novo').onclick = () => cursoGuardar(0);
-  $$('[data-c-ren]').forEach((b) => (b.onclick = () => cursoGuardar(+b.dataset.cRen, US.cursos.find((c) => c.id === +b.dataset.cRen)?.nome)));
-  $$('[data-c-del]').forEach((b) => (b.onclick = async () => {
-    if (!confirm('Apagar este curso (não tem dados)?')) return;
-    try { await api('curso_apagar', { id: b.dataset.cDel, body: {} }); await carregarUtilizadores(); await reload(); renderWho(); render(); toast('Curso apagado.'); }
-    catch (err) { toast(err.message, true); }
+  const depois = async (msg) => { dlg.close(); await carregarUtilizadores(); await reload(); renderWho(); render(); toast(msg); };
+  $('#c-novo').onclick = () => formCurso(null, depois);
+  $$('[data-c-ren]').forEach((b) => (b.onclick = () => formCurso(US.cursos.find((c) => c.id === +b.dataset.cRen), depois)));
+  $$('[data-c-del]').forEach((b) => (b.onclick = () => {
+    const c = US.cursos.find((x) => x.id === +b.dataset.cDel);
+    dlg.innerHTML = `<form method="dialog" class="dlg-small"><h2>Apagar curso</h2>
+      <p>Apagar o curso <b>${esc(c?.nome || '')}</b>? Não tem dados associados.</p>
+      <p class="erro" id="form-err"></p>
+      <div class="dlg-actions"><button type="button" class="btn" id="dlg-cancel">Cancelar</button>
+        <button type="submit" class="btn danger">Apagar</button></div></form>`;
+    $('#dlg-cancel', dlg).onclick = () => dlg.close();
+    $('form', dlg).onsubmit = async (ev) => {
+      ev.preventDefault();
+      try { await api('curso_apagar', { id: c.id, body: {} }); await depois('Curso apagado.'); }
+      catch (err) { $('#form-err', dlg).textContent = err.message; }
+    };
+    dlg.showModal();
   }));
+}
+
+/** Painel (com o fundo escurecido) para criar um curso ou mudar-lhe o nome. */
+function formCurso(c, depois) {
+  dlg.innerHTML = `<form method="dialog" class="dlg-small"><h2>${c ? 'Mudar nome do curso' : 'Novo curso'}</h2>
+    <label><span>Nome do curso <span class="req">*</span></span>
+      <input name="nome" value="${esc(c?.nome || '')}" required placeholder="ex.: Técnico de Gestão e Programação de Sistemas Informáticos"></label>
+    ${c ? '' : '<p class="sub">Os textos do plano de estágio (objetivos, horário, durações) começam iguais aos do curso ativo e podem ser alterados em Definições.</p>'}
+    <p class="erro" id="form-err"></p>
+    <div class="dlg-actions"><button type="button" class="btn" id="dlg-cancel">Cancelar</button>
+      <button type="submit" class="btn primary">${c ? 'Guardar' : 'Criar curso'}</button></div></form>`;
+  const form = $('form', dlg);
+  $('#dlg-cancel', dlg).onclick = () => dlg.close();
+  form.onsubmit = async (ev) => {
+    ev.preventDefault();
+    try { await api('curso_guardar', { body: { id: c?.id || 0, nome: form.nome.value } }); await depois(c ? 'Nome do curso alterado.' : 'Curso criado.'); }
+    catch (err) { $('#form-err', dlg).textContent = err.message; }
+  };
+  dlg.showModal();
+  form.nome.focus();
+  form.nome.select();
 }
 
 async function start() {
