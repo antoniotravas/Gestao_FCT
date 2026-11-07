@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107h';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107h';
-import { gerarXlsx } from './xlsx.js?v=20261107h';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107i';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107i';
+import { gerarXlsx } from './xlsx.js?v=20261107i';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -934,7 +934,7 @@ const FORM_HOOKS = {
         if (!ini.value || !(total > 0)) return;
         const dias = Math.ceil(total / porDia);
         fim.value = somarDiasUteis(ini.value, dias);
-        $('#fim-calc', form).textContent = `(provável: ${dias} dias úteis = ${fmtNum(total)} h ÷ ${fmtNum(porDia)} h/dia, sem fins de semana nem feriados)`;
+        $('#fim-calc', form).textContent = `(provável: ${dias} dias úteis = ${fmtNum(total)} h ÷ ${fmtNum(porDia)} h/dia)`;
       };
       for (const el of [ini, horas, hDia]) el.addEventListener('change', calcFim);
 
