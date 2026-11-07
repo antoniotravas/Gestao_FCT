@@ -15,3 +15,10 @@ Options -Indexes
 RedirectMatch 403 ^/(lib|data)(/|$)
 RedirectMatch 403 /config(\.sample)?\.php$
 RedirectMatch 403 \.(sqlite|sqlite-wal|sqlite-shm|db|md)$
+
+# A página principal não fica em cache (os ficheiros .js/.css têm ?v= no endereço)
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
