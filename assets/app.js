@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107e';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107e';
-import { gerarXlsx } from './xlsx.js?v=20261107e';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107f';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107f';
+import { gerarXlsx } from './xlsx.js?v=20261107f';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -889,6 +889,10 @@ const FORM_HOOKS = {
       const usar = (x) => { prof.value = x.nome || ''; profEmail.value = x.email || ''; profTel.value = x.tel || ''; };
       $('#prof-pick', form).onchange = (ev) => { const x = profs[ev.target.value]; if (x) usar(x); };
       if (isNew && !prof.value && profs[0]?.eu) { usar(profs[0]); $('#prof-pick', form).value = '0'; }
+
+      // horas previstas: numa afetação nova vêm das Definições do curso (FCT, horas) ou 300; podem ser alteradas
+      const horas = $('[name=horas_previstas]', form);
+      if (isNew && horas && !horas.value) horas.value = parseInt(S.settings.horas_fct, 10) || 300;
 
       const emp = $('[name=empresa_id]', form);
       const tutor = $('[name=tutor]', form);
