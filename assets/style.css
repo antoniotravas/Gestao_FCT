@@ -185,11 +185,11 @@ ul.missing { margin: 8px 0 0; padding-left: 20px; }
   table.att tr.st-Falta { border-left: 4px solid var(--danger); }
   table.att tr.st-Presente { border-left: 4px solid var(--ok); }
   .table-wrap { overflow-x: visible; }
-  /* Afetações: cartão resumido (só aluno e empresa); tocar abre todos os dados */
-  table.stack.compacto-m td:not([data-f="aluno_id"]):not([data-f="empresa_id"]) { display: none; }
-  table.stack.compacto-m tbody tr { position: relative; padding-right: 32px; }
+  /* Cartões resumidos (CARTAO_M em app.js): só os campos escolhidos, pela ordem indicada; tocar abre o registo */
+  table.stack td.m-hide { display: none; }
+  table.stack.compacto-m tbody tr { position: relative; padding-right: 32px; display: flex; flex-direction: column; }
   table.stack.compacto-m tbody tr::after { content: '›'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; color: var(--muted); }
-  table.stack.compacto-m td[data-f="empresa_id"] { border-bottom: none; }
+  table.stack.compacto-m td { border-bottom: none; padding-top: 4px; padding-bottom: 4px; }
 }
 
 @media print {

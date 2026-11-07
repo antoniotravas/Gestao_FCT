@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107c';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107c';
-import { gerarXlsx } from './xlsx.js?v=20261107c';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107d';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107d';
+import { gerarXlsx } from './xlsx.js?v=20261107d';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -268,17 +268,24 @@ async function removeRecord(name, id, after) {
 }
 
 /* ---------------- Tabelas ---------------- */
+/** Campos dos cartões resumidos no telemóvel (listas principais). */
+const CARTAO_M = {
+  colocacoes: ['aluno_id', 'empresa_id'],
+  alunos: ['nome', 'telefone', 'email'],
+};
 function table(name, list, { hide = [], extraCols = [] } = {}) {
   const e = ent(name);
   const cols = e.fields.filter((f) => f.list && !hide.includes(f.name));
   if (!list.length) return '<p class="empty">Sem registos.</p>';
-  // No telemóvel, os cartões das afetações mostram só aluno e empresa (o resto vê-se ao abrir a afetação).
-  const compacto = name === 'colocacoes' ? ' class="compacto-m"' : '';
-  return `<div class="table-wrap"><table${compacto}><thead><tr>
+  // No telemóvel, algumas listas mostram cartões resumidos (só estes campos, por esta ordem); o resto vê-se ao abrir o registo.
+  const so = CARTAO_M[name];
+  const cls = (f) => [f.type === 'textarea' || f.type === 'text' ? 'clip' : '', so && !so.includes(f.name) ? 'm-hide' : ''].join(' ').trim();
+  const ordem = (f) => (so?.includes(f.name) ? ` style="order:${so.indexOf(f.name)}"` : '');
+  return `<div class="table-wrap"><table${so ? ' class="compacto-m"' : ''}><thead><tr>
     ${cols.map((f) => `<th>${esc(f.label)}</th>`).join('')}${extraCols.map((c) => `<th>${esc(c.label)}</th>`).join('')}
     </tr></thead><tbody>${list.map((r) => `<tr class="click" data-go="#/ver/${name}/${r.id}">
-      ${cols.map((f) => `<td data-f="${f.name}" class="${f.type === 'textarea' || f.type === 'text' ? 'clip' : ''}">${fmtValue(f, r[f.name])}</td>`).join('')}
-      ${extraCols.map((c) => `<td>${c.render(r)}</td>`).join('')}
+      ${cols.map((f) => `<td data-f="${f.name}" class="${cls(f)}"${ordem(f)}>${fmtValue(f, r[f.name])}</td>`).join('')}
+      ${extraCols.map((c) => `<td${so ? ' class="m-hide"' : ''}>${c.render(r)}</td>`).join('')}
     </tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -840,9 +847,10 @@ const P_EU = () => !S.diretor.diretor_curso || S.diretor.diretor_curso === S.eu.
 const FORM_HOOKS = {
   colocacoes: {
     setup(form, { isNew, record } = {}) {
-      // só alunos ainda sem afetação no ano letivo (as interrompidas não contam); mantém o aluno da própria afetação
+      // só alunos ainda sem afetação (as interrompidas não contam); mantém o aluno da própria afetação.
+      // Sem filtrar pelo ano letivo: cada aluno é registado por ano, e uma afetação com o ano diferente/vazio também conta.
       const al = $('[name=aluno_id]', form);
-      const afetos = new Set(rows('colocacoes').filter((c) => c.id !== record?.id && c.estado !== 'Interrompida' && inYear(c)).map((c) => c.aluno_id));
+      const afetos = new Set(rows('colocacoes').filter((c) => c.id !== record?.id && c.estado !== 'Interrompida').map((c) => Number(c.aluno_id)));
       let escondidos = 0;
       [...al.options].forEach((o) => { if (o.value && afetos.has(+o.value) && o.value !== String(al.value)) { o.remove(); escondidos++; } });
       if (escondidos) al.closest('label').querySelector('span').insertAdjacentHTML('beforeend',
