@@ -159,7 +159,7 @@ ul.missing { margin: 8px 0 0; padding-left: 20px; }
   .sidebar nav, .sidebar #logout { display: none; flex-basis: 100%; }
   .sidebar.open nav { display: flex; max-height: calc(100vh - 110px); overflow-y: auto; padding-top: 6px; }
   .sidebar.open #logout { display: block; text-align: left; }
-  .who { order: 3; flex-basis: 100%; display: none; border: 0; padding: 6px 6px 0; }
+  .who { flex-basis: 100%; display: none; margin: 8px 0 0; padding: 0 6px 10px; } /* logo abaixo do título, antes do menu (como no computador) */
   .sidebar.open .who { display: block; }
   .who-nome .nome-pc { display: none; }
   .who-nome .nome-m { display: inline; }
