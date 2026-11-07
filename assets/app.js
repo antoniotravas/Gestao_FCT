@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107f';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107f';
-import { gerarXlsx } from './xlsx.js?v=20261107f';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107g';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107g';
+import { gerarXlsx } from './xlsx.js?v=20261107g';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -866,6 +866,37 @@ const profOpcao = (x, i, atual) => `<option value="${i}" ${String(atual || '').t
 
 const P_EU = () => !S.diretor.diretor_curso || S.diretor.diretor_curso === S.eu.nome;
 
+/* ---------- Dias úteis e feriados nacionais (Portugal) ---------- */
+const isoData = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function pascoa(ano) { // algoritmo de Meeus/Jones/Butcher (calendário gregoriano)
+  const a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(ano, mes - 1, dia);
+}
+const _feriados = {};
+/** Feriados nacionais obrigatórios (sem Carnaval nem feriado municipal) — conjunto de 'aaaa-mm-dd'. */
+function feriados(ano) {
+  if (_feriados[ano]) return _feriados[ano];
+  const p = pascoa(ano);
+  const rel = (n) => isoData(new Date(p.getFullYear(), p.getMonth(), p.getDate() + n));
+  const fixos = ['01-01', '04-25', '05-01', '06-10', '08-15', '10-05', '11-01', '12-01', '12-08', '12-25'].map((md) => `${ano}-${md}`);
+  return (_feriados[ano] = new Set([...fixos, rel(-2), rel(0), rel(60)])); // Sexta-feira Santa, Páscoa, Corpo de Deus
+}
+const diaUtil = (d) => d.getDay() !== 0 && d.getDay() !== 6 && !feriados(d.getFullYear()).has(isoData(d));
+/** Data do n-ésimo dia útil a contar de «inicio» (o próprio dia conta, se for útil). */
+function somarDiasUteis(inicio, n) {
+  const [y, m, dd] = inicio.split('-').map(Number);
+  const d = new Date(y, m - 1, dd);
+  let conta = 0;
+  for (let guarda = 0; guarda < 2000; guarda++) {
+    if (diaUtil(d) && ++conta >= n) return isoData(d);
+    d.setDate(d.getDate() + 1);
+  }
+  return '';
+}
+
 const FORM_HOOKS = {
   colocacoes: {
     setup(form, { isNew, record } = {}) {
@@ -893,6 +924,19 @@ const FORM_HOOKS = {
       // horas previstas: numa afetação nova vêm das Definições do curso (FCT, horas) ou 300; podem ser alteradas
       const horas = $('[name=horas_previstas]', form);
       if (isNew && horas && !horas.value) horas.value = parseInt(S.settings.horas_fct, 10) || 300;
+
+      // data de fim provável = início + (horas ÷ horas por dia) dias úteis, sem fins de semana nem feriados nacionais.
+      // Recalcula só quando se mexe no início ou nas horas (abrir o formulário não altera uma data já guardada).
+      const ini = $('[name=data_inicio]', form), fim = $('[name=data_fim]', form), hDia = $('[name=horas_diarias]', form);
+      fim.closest('label').querySelector('span').insertAdjacentHTML('beforeend', ' <span class="sub" id="fim-calc"></span>');
+      const calcFim = () => {
+        const total = Number(horas.value), porDia = Number(hDia.value) || 7;
+        if (!ini.value || !(total > 0)) return;
+        const dias = Math.ceil(total / porDia);
+        fim.value = somarDiasUteis(ini.value, dias);
+        $('#fim-calc', form).textContent = `(provável: ${dias} dias úteis = ${fmtNum(total)} h ÷ ${fmtNum(porDia)} h/dia, sem fins de semana nem feriados)`;
+      };
+      for (const el of [ini, horas, hDia]) el.addEventListener('change', calcFim);
 
       const emp = $('[name=empresa_id]', form);
       const tutor = $('[name=tutor]', form);
