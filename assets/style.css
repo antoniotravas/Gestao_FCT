@@ -69,6 +69,9 @@ th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--lin
 th { font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 600; background: #fafbfc; }
 tbody tr.click { cursor: pointer; }
 tbody tr.click:hover { background: var(--accent-soft); }
+/* Alunos já afetos a uma empresa: fundo lima claro */
+tbody tr.afeto { background: #eef9d4; }
+tbody tr.afeto.click:hover { background: #e2f3bd; }
 td.clip { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .empty { color: var(--muted); padding: 14px 0; }
 .count { color: var(--muted); font-size: .9rem; margin-top: 8px; }

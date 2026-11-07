@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107d';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107d';
-import { gerarXlsx } from './xlsx.js?v=20261107d';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107e';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107e';
+import { gerarXlsx } from './xlsx.js?v=20261107e';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -273,7 +273,22 @@ const CARTAO_M = {
   colocacoes: ['aluno_id', 'empresa_id'],
   alunos: ['nome', 'telefone', 'email'],
 };
-function table(name, list, { hide = [], extraCols = [] } = {}) {
+/** Afetação atual do aluno (a mais recente que não esteja «Interrompida»), ou null. */
+const afetacaoDe = (alunoId) => rows('colocacoes').filter((c) => Number(c.aluno_id) === Number(alunoId) && c.estado !== 'Interrompida')
+  .sort((a, b) => b.id - a.id)[0] || null;
+const corta = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
+
+/** Opções da lista principal de cada entidade (colunas a esconder, colunas extra, classe de cada linha). */
+function listOpts(name) {
+  const o = { extraCols: extraColsFor(name) };
+  if (name === 'alunos') {
+    o.hide = ['ano_letivo']; // processo, nome, turma, curso, email, telefone + empresa
+    o.rowClass = (r) => (afetacaoDe(r.id) ? 'afeto' : '');
+  }
+  return o;
+}
+
+function table(name, list, { hide = [], extraCols = [], rowClass = () => '' } = {}) {
   const e = ent(name);
   const cols = e.fields.filter((f) => f.list && !hide.includes(f.name));
   if (!list.length) return '<p class="empty">Sem registos.</p>';
@@ -283,7 +298,7 @@ function table(name, list, { hide = [], extraCols = [] } = {}) {
   const ordem = (f) => (so?.includes(f.name) ? ` style="order:${so.indexOf(f.name)}"` : '');
   return `<div class="table-wrap"><table${so ? ' class="compacto-m"' : ''}><thead><tr>
     ${cols.map((f) => `<th>${esc(f.label)}</th>`).join('')}${extraCols.map((c) => `<th>${esc(c.label)}</th>`).join('')}
-    </tr></thead><tbody>${list.map((r) => `<tr class="click" data-go="#/ver/${name}/${r.id}">
+    </tr></thead><tbody>${list.map((r) => `<tr class="click ${rowClass(r)}" data-go="#/ver/${name}/${r.id}">
       ${cols.map((f) => `<td data-f="${f.name}" class="${cls(f)}"${ordem(f)}>${fmtValue(f, r[f.name])}</td>`).join('')}
       ${extraCols.map((c) => `<td${so ? ' class="m-hide"' : ''}>${c.render(r)}</td>`).join('')}
     </tr>`).join('')}</tbody></table></div>`;
@@ -301,6 +316,12 @@ const extraColsFor = (name) => {
       <div class="sub">${protFicheiros(r.id).length} ficheiro(s)</div>` : '<span class="sub">sem ficheiros</span>';
   } }];
   if (name === 'tarefas') return [{ label: '', render: (r) => (r.estado !== 'Feita' ? dueBadge(r.data_limite) : '') }];
+  if (name === 'alunos') return [{ label: 'Empresa', render: (r) => {
+    const c = afetacaoDe(r.id);
+    if (!c) return '';
+    const nome = label('empresas', c.empresa_id);
+    return `<a href="#/ver/colocacoes/${c.id}" onclick="event.stopPropagation()" title="${esc(nome)}">${esc(corta(nome, 50))}</a>`;
+  } }];
   if (name === 'empresas') return [
     { label: 'Último contacto', render: (r) => { const l = empContacts(r.id)[0]; return l ? `${fmtDate(l.data)}<div class="sub">${relDays(l.data)}</div>` : '<span class="sub">—</span>'; } },
     { label: 'Pendente', render: (r) => { const p = empPending(r.id)[0]; return p ? `${pendBadge(p)} ${dueBadge(p.data_followup)}` : ''; } },
@@ -410,7 +431,8 @@ function filteredRows(name) {
     if (st.estado && r.estado !== st.estado) return false;
     if (st.ano && r.ano_letivo && r.ano_letivo !== st.ano) return false;
     if (!terms.length) return true;
-    const hay = e.fields.map((f) => (f.type === 'ref' ? label(f.ref, r[f.name]) : r[f.name] ?? '')).join(' ').toLowerCase();
+    let hay = e.fields.map((f) => (f.type === 'ref' ? label(f.ref, r[f.name]) : r[f.name] ?? '')).join(' ').toLowerCase();
+    if (name === 'alunos') { const c = afetacaoDe(r.id); if (c) hay += ' ' + label('empresas', c.empresa_id).toLowerCase(); } // pesquisar também pela empresa
     return terms.every((t) => hay.includes(t));
   });
 }
@@ -424,7 +446,7 @@ function bindList(name) {
       bindBoard();
       return;
     }
-    $('#list').innerHTML = table(name, list, { extraCols: extraColsFor(name) })
+    $('#list').innerHTML = table(name, list, listOpts(name))
       + `<div class="count">${list.length} de ${rows(name).length} registo(s)</div>`;
     bindRows();
   };
