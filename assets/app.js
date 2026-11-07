@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107n';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107n';
-import { gerarXlsx } from './xlsx.js?v=20261107n';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107o';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107o';
+import { gerarXlsx } from './xlsx.js?v=20261107o';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -505,77 +505,43 @@ const FICHA_CAMPOS = [
   ['Pessoa de contacto principal', 'responsavel'], ['Cargo', 'cargo_responsavel'], ['Email da pessoa de contacto', 'email_responsavel'],
   ['Telefone da pessoa de contacto', 'telefone_responsavel'], ['Vagas para estagiários', 'vagas'],
 ];
-const ficha = { estagiarios: false };
-function fichaDados(id) {
-  const e = get('empresas', id);
-  if (!e) return null;
-  const pessoas = rows('pessoas').filter((x) => x.empresa_id === e.id).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
-  const estag = rows('colocacoes').filter((c) => c.empresa_id === e.id && inYear(c) && c.estado !== 'Interrompida')
-    .map((c) => ({ aluno: get('alunos', c.aluno_id)?.nome || '', inicio: fmtDate(c.data_inicio), fim: fmtDate(c.data_fim), tutor: c.tutor || '' }));
-  const P = S.diretor || {};
-  return { e, pessoas, estag, P, s: S.settings };
+/** Ficha para conferência: tabela simples (Campo | Valor) para copiar e colar num email.
+ *  Os estilos ficam dentro da tabela (inline) para se manterem ao colar no programa de email. */
+function fichaTabela(e) {
+  const td = 'border:1px solid #999;padding:4px 8px;text-align:left;vertical-align:top;font-family:Arial,sans-serif;font-size:13px';
+  const val = (k) => (e[k] != null && e[k] !== '' ? esc(k === 'vagas' ? fmtNum(e[k]) : e[k]) : '');
+  return `<table style="border-collapse:collapse"><tbody>${FICHA_CAMPOS.map(([l, k]) =>
+    `<tr><td style="${td};font-weight:bold;background:#f2f2f2">${esc(l)}</td><td style="${td};min-width:260px">${val(k)}</td></tr>`).join('')}</tbody></table>`;
 }
-function fichaTxt(d) {
-  const { e, pessoas, estag, P, s } = d;
-  const w = Math.max(...FICHA_CAMPOS.map(([l]) => l.length)) + 2;
-  const linha = '='.repeat(72);
-  const L = [
-    (s.escola || '').toUpperCase(), 'FICHA DE DADOS DA ENTIDADE DE ACOLHIMENTO — CONFERÊNCIA',
-    `Formação em Contexto de Trabalho · Ano letivo ${s.ano_letivo || ''} · ${fmtDate(today())}`, linha, '',
-    'Pedimos que confirme os dados abaixo. Se algum estiver incorreto ou em falta,',
-    'escreva a correção à frente (ou responda ao email com as alterações).', '',
-    'DADOS DA ENTIDADE', '-'.repeat(72),
-    ...FICHA_CAMPOS.map(([l, k]) => `${(l + ':').padEnd(w)}${e[k] != null && e[k] !== '' ? (k === 'vagas' ? fmtNum(e[k]) : e[k]) : '______________________'}`),
-    '', 'PESSOAS DE CONTACTO / TUTORES', '-'.repeat(72),
-    ...(pessoas.length ? pessoas.flatMap((x, i) => [`${i + 1}. ${x.nome}${x.cargo ? ' — ' + x.cargo : ''}${x.tutor === 'Sim' ? ' (tutor)' : ''}`,
-      `   Telefone: ${x.telefone || '________'}   Email: ${x.email || '________'}`]) : ['(sem pessoas registadas — indique, por favor, quem será o tutor)']),
-  ];
-  if (ficha.estagiarios && estag.length) L.push('', `ESTAGIÁRIOS ${s.ano_letivo || ''}`, '-'.repeat(72),
-    ...estag.map((x) => `- ${x.aluno}${x.inicio ? ` (${x.inicio}${x.fim ? ' a ' + x.fim : ''})` : ''}${x.tutor ? ' · tutor: ' + x.tutor : ''}`));
-  L.push('', 'Correções / observações:', '', '_'.repeat(72), '', '_'.repeat(72), '', '_'.repeat(72), '', linha,
-    `Contacto: ${[P.diretor_curso, 'Diretor(a) de curso' + (s.curso ? ' — ' + s.curso : '')].filter(Boolean).join(', ')}`,
-    [P.email_diretor, P.telefone_diretor].filter(Boolean).join(' · '), s.escola || '');
-  return L.join('\r\n');
+function fichaTexto(e) { // para colar onde não se aceita HTML
+  return FICHA_CAMPOS.map(([l, k]) => `${l}: ${e[k] ?? ''}`).join('\r\n');
 }
 function viewFicha(id) {
-  const d = fichaDados(id);
-  if (!d) return '<p>Empresa não encontrada.</p>';
-  const { e, pessoas, estag, P, s } = d;
-  const v = (k) => (e[k] != null && e[k] !== '' ? esc(k === 'vagas' ? fmtNum(e[k]) : e[k]) : '<span class="vazio">em falta</span>');
-  return `<div class="page-head no-print"><div><div class="sub"><a href="#/ver/empresas/${e.id}">← ${esc(e.nome)}</a></div>
-      <h1>📄 Ficha para conferência</h1><div class="sub">Envie à empresa para confirmar os dados. Para PDF: Imprimir → «Guardar como PDF».</div></div>
-      <div class="actions"><label class="sub" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="fc-est" style="width:auto" ${ficha.estagiarios ? 'checked' : ''}> incluir estagiários (${estag.length})</label>
-        <button class="btn" id="fc-txt">⬇️ TXT</button><button class="btn primary" onclick="window.print()">🖨️ Imprimir / PDF</button></div></div>
-    <div class="doc-ficha">
-      <div class="df-head"><img src="api.php?a=logo&k=escola&v=${S.logos.escola?.v || 0}" alt="">
-        <div><b>${esc(s.escola || '')}</b><div>Formação em Contexto de Trabalho · Ano letivo ${esc(s.ano_letivo || '')}</div></div>
-        <img src="api.php?a=logo&k=republica&v=${S.logos.republica?.v || 0}" alt=""></div>
-      <h2>Ficha de dados da entidade de acolhimento</h2>
-      <p class="df-intro">Pedimos que confirme os dados abaixo. Se algum estiver incorreto ou em falta, indique a correção na coluna da direita
-        (ou responda ao email com as alterações). Obrigado pela colaboração.</p>
-      <h3>Dados da entidade</h3>
-      <table class="df"><thead><tr><th style="width:32%">Campo</th><th>Registado</th><th style="width:30%">Correção</th></tr></thead>
-        <tbody>${FICHA_CAMPOS.map(([l, k]) => `<tr><td>${esc(l)}</td><td>${v(k)}</td><td></td></tr>`).join('')}</tbody></table>
-      <h3>Pessoas de contacto / tutores</h3>
-      ${pessoas.length ? `<table class="df"><thead><tr><th>Nome</th><th>Cargo</th><th>Telefone</th><th>Email</th><th>Tutor</th></tr></thead>
-        <tbody>${pessoas.map((x) => `<tr><td>${esc(x.nome)}</td><td>${esc(x.cargo || '')}</td><td>${esc(x.telefone || '')}</td><td>${esc(x.email || '')}</td><td>${esc(x.tutor || '')}</td></tr>`).join('')}
-        <tr class="nova"><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>`
-        : '<p class="df-intro">Sem pessoas registadas — indique, por favor, quem será o tutor (nome, cargo, telefone e email).</p>'}
-      ${ficha.estagiarios && estag.length ? `<h3>Estagiários ${esc(s.ano_letivo || '')}</h3><table class="df"><thead><tr><th>Aluno</th><th>Período</th><th>Tutor</th></tr></thead>
-        <tbody>${estag.map((x) => `<tr><td>${esc(x.aluno)}</td><td>${esc([x.inicio, x.fim].filter(Boolean).join(' a '))}</td><td>${esc(x.tutor)}</td></tr>`).join('')}</tbody></table>` : ''}
-      <h3>Correções / observações</h3><div class="df-obs"></div>
-      <div class="df-foot">${esc([P.diretor_curso, 'Diretor(a) de curso' + (s.curso ? ' — ' + s.curso : '')].filter(Boolean).join(', '))}<br>
-        ${esc([P.email_diretor, P.telefone_diretor].filter(Boolean).join(' · '))}<br>${esc(s.localidade_escola || '')}, ${fmtDate(today())}</div>
-    </div>`;
+  const e = get('empresas', id);
+  if (!e) return '<p>Empresa não encontrada.</p>';
+  return `<div class="page-head"><div><div class="sub"><a href="#/ver/empresas/${e.id}">← ${esc(e.nome)}</a></div>
+      <h1>📄 Ficha para conferência</h1><div class="sub">Copie a tabela e cole-a no email para a empresa confirmar os dados.</div></div>
+      <div class="actions"><button class="btn primary" id="fc-copiar">📋 Copiar tabela</button></div></div>
+    <div class="panel" id="fc-tabela" style="overflow-x:auto">${fichaTabela(e)}</div>`;
 }
 function bindFicha(id) {
-  const d = fichaDados(id);
-  if (!d) return;
-  $('#fc-est').onchange = (ev) => { ficha.estagiarios = ev.target.checked; render(); };
-  $('#fc-txt').onclick = () => descarregar(new Blob(['﻿' + fichaTxt(fichaDados(id))], { type: 'text/plain;charset=utf-8' }),
-    `Ficha de dados - ${d.e.nome.replace(/[\\/:*?"<>|]+/g, '').slice(0, 80)}.txt`);
-  document.title = `Ficha de dados - ${d.e.nome}`; // nome sugerido ao guardar em PDF
-  addEventListener('hashchange', () => (document.title = 'Gestão FCT'), { once: true });
+  const e = get('empresas', id);
+  if (!e) return;
+  $('#fc-copiar').onclick = async () => {
+    const html = fichaTabela(e);
+    try {
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([fichaTexto(e)], { type: 'text/plain' }),
+      })]);
+    } catch { // browsers sem ClipboardItem: seleciona a tabela e copia
+      const r = document.createRange();
+      r.selectNodeContents($('#fc-tabela'));
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      document.execCommand('copy'); sel.removeAllRanges();
+    }
+    toast('Tabela copiada — cole-a no email.');
+  };
 }
 
 /* ---------- Listagem breve: aluno, contacto, empresa, tutor e contacto ---------- */
