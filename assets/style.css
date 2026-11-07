@@ -277,3 +277,20 @@ table.df tr.nova td { height: 26px; }
   .df .vazio { color: #999; }
 }
 @media (max-width: 640px) { .doc-ficha { padding: 16px; } .df-head img { height: 40px; } }
+
+/* Campo com pesquisa (comboRef em app.js) */
+.combo-in { position: relative; }
+.combo-in input { padding-right: 36px; }
+.combo-x { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); border: 0; background: none; font-size: 1.35rem; line-height: 1; color: var(--muted); cursor: pointer; padding: 4px 10px; }
+.combo-x[hidden] { display: none; }
+.combo-list { list-style: none; margin: 4px 0 0; padding: 4px; max-height: min(300px, 42vh); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: 0 8px 20px rgba(0,0,0,.08); font-weight: normal; }
+.combo-list[hidden] { display: none; }
+.combo-list li { padding: 9px 10px; border-radius: 6px; cursor: pointer; color: var(--text); }
+.combo-list li.on { background: var(--accent-soft); }
+.combo-list li.sel { font-weight: 600; color: var(--accent); }
+.combo-list li.combo-info { cursor: default; color: var(--muted); font-size: .85rem; }
+@media (max-width: 640px) {
+  .combo-in input { font-size: 16px; } /* evita o zoom automático do iPhone ao tocar na caixa */
+  .combo-list li { padding: 12px 10px; }
+}

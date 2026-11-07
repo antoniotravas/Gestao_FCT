@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107b';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107b';
-import { gerarXlsx } from './xlsx.js?v=20261107b';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107c';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107c';
+import { gerarXlsx } from './xlsx.js?v=20261107c';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -137,6 +137,79 @@ function fieldInput(f, value) {
   }
 }
 
+/* Campo de referência com pesquisa: quando o <select> tem muitas opções, mostra-se uma caixa de texto
+   que filtra a lista enquanto se escreve. O <select> (escondido) continua a guardar o valor e a emitir
+   «change», por isso os FORM_HOOKS funcionam igual. As opções são lidas do <select> a cada pesquisa. */
+const semAcentos = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+function comboRef(sel, minOpcoes = 12) {
+  if (!sel || sel.dataset.combo || sel.options.length <= minOpcoes) return;
+  sel.dataset.combo = '1';
+  const MAX = 60;
+  const box = document.createElement('div');
+  box.className = 'combo';
+  box.innerHTML = `<div class="combo-in"><input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"
+      role="combobox" aria-autocomplete="list" aria-expanded="false" placeholder="Escreva para pesquisar (${sel.options.length - 1})…" ${sel.required ? 'required' : ''}>
+    <button type="button" class="combo-x" title="Limpar" aria-label="Limpar">×</button></div>
+    <ul class="combo-list" role="listbox" hidden></ul>`;
+  sel.required = false;
+  sel.hidden = true;
+  sel.after(box);
+  const inp = $('input', box), ul = $('ul', box), x = $('.combo-x', box);
+  let achados = [], ativo = 0;
+  const atual = () => (sel.value ? sel.selectedOptions[0]?.text || '' : '');
+  const sync = () => { inp.value = atual(); x.hidden = !inp.value; };
+  const fechar = () => { ul.hidden = true; inp.setAttribute('aria-expanded', 'false'); };
+  const mudar = (v) => { if (sel.value !== v) { sel.value = v; sel.dispatchEvent(new Event('change')); } };
+  const escolher = (o) => { mudar(o.value); sync(); fechar(); };
+  const marcar = () => $$('li[data-i]', ul).forEach((li) => {
+    const on = +li.dataset.i === ativo;
+    li.classList.toggle('on', on);
+    if (on) li.scrollIntoView({ block: 'nearest' });
+  });
+  const desenhar = () => {
+    // com o valor escolhido ainda na caixa, mostra a lista toda
+    const termos = inp.value === atual() ? [] : semAcentos(inp.value).split(/\s+/).filter(Boolean);
+    achados = [...sel.options].filter((o) => o.value && termos.every((t) => semAcentos(o.text).includes(t)));
+    ativo = Math.max(0, achados.findIndex((o) => o.value === sel.value));
+    if (termos.length || ativo >= MAX) ativo = 0;
+    ul.innerHTML = achados.length
+      ? achados.slice(0, MAX).map((o, i) => `<li role="option" data-i="${i}" class="${o.value === sel.value ? 'sel' : ''}">${esc(o.text)}</li>`).join('')
+        + (achados.length > MAX ? `<li class="combo-info">… mais ${achados.length - MAX} — continue a escrever para filtrar</li>` : '')
+      : '<li class="combo-info">Sem resultados</li>';
+    ul.hidden = false;
+    inp.setAttribute('aria-expanded', 'true');
+    marcar();
+  };
+  inp.addEventListener('click', () => { if (ul.hidden) { inp.select(); desenhar(); } });
+  inp.addEventListener('input', () => { x.hidden = !inp.value; desenhar(); });
+  inp.addEventListener('blur', () => {
+    fechar();
+    if (!inp.value.trim()) mudar('');
+    sync(); // texto escrito sem escolher uma opção volta ao valor guardado
+  });
+  inp.addEventListener('keydown', (ev) => {
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      if (ul.hidden) return desenhar();
+      ativo = Math.max(0, Math.min(Math.min(achados.length, MAX) - 1, ativo + (ev.key === 'ArrowDown' ? 1 : -1)));
+      marcar();
+    } else if (ev.key === 'Enter' && !ul.hidden) {
+      ev.preventDefault();
+      if (achados[ativo]) escolher(achados[ativo]);
+    } else if (ev.key === 'Escape' && !ul.hidden) {
+      ev.preventDefault(); // não fecha o diálogo, só a lista
+      sync(); fechar();
+    }
+  });
+  // mousedown cancelado: tocar na lista não tira o foco à caixa (senão o blur fecharia a lista antes do clique)
+  ul.addEventListener('mousedown', (ev) => ev.preventDefault());
+  ul.addEventListener('click', (ev) => { const li = ev.target.closest('li[data-i]'); if (li) escolher(achados[+li.dataset.i]); });
+  x.addEventListener('mousedown', (ev) => ev.preventDefault());
+  x.addEventListener('click', () => { mudar(''); inp.value = ''; x.hidden = true; inp.focus(); desenhar(); });
+  sel.addEventListener('change', () => { if (document.activeElement !== inp) sync(); });
+  sync();
+}
+
 function openForm(name, record = null, preset = {}) {
   const e = ent(name);
   const isNew = !record;
@@ -158,6 +231,7 @@ function openForm(name, record = null, preset = {}) {
     </div></form>`;
   const hook = FORM_HOOKS[name];
   hook?.setup?.($('form', dlg), { isNew, record, preset });
+  for (const f of e.fields) if (f.type === 'ref') comboRef($(`select[name="${f.name}"]`, dlg));
   $('#dlg-cancel', dlg).onclick = () => dlg.close();
   $('form', dlg).onsubmit = async (ev) => {
     ev.preventDefault();
@@ -176,7 +250,7 @@ function openForm(name, record = null, preset = {}) {
   };
   openForm.goToNew = isNew && !Object.keys(preset).length && name !== 'contactos';
   dlg.showModal();
-  $('input, select, textarea', dlg)?.focus();
+  $('input:not([hidden]), select:not([hidden]), textarea', dlg)?.focus();
 }
 
 async function removeRecord(name, id, after) {
