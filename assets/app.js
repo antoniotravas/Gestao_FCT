@@ -198,10 +198,12 @@ function table(name, list, { hide = [], extraCols = [] } = {}) {
   const e = ent(name);
   const cols = e.fields.filter((f) => f.list && !hide.includes(f.name));
   if (!list.length) return '<p class="empty">Sem registos.</p>';
-  return `<div class="table-wrap"><table><thead><tr>
+  // No telemóvel, os cartões das afetações mostram só aluno e empresa (o resto vê-se ao abrir a afetação).
+  const compacto = name === 'colocacoes' ? ' class="compacto-m"' : '';
+  return `<div class="table-wrap"><table${compacto}><thead><tr>
     ${cols.map((f) => `<th>${esc(f.label)}</th>`).join('')}${extraCols.map((c) => `<th>${esc(c.label)}</th>`).join('')}
     </tr></thead><tbody>${list.map((r) => `<tr class="click" data-go="#/ver/${name}/${r.id}">
-      ${cols.map((f) => `<td class="${f.type === 'textarea' || f.type === 'text' ? 'clip' : ''}">${fmtValue(f, r[f.name])}</td>`).join('')}
+      ${cols.map((f) => `<td data-f="${f.name}" class="${f.type === 'textarea' || f.type === 'text' ? 'clip' : ''}">${fmtValue(f, r[f.name])}</td>`).join('')}
       ${extraCols.map((c) => `<td>${c.render(r)}</td>`).join('')}
     </tr>`).join('')}</tbody></table></div>`;
 }
