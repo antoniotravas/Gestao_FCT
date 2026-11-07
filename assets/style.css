@@ -196,6 +196,8 @@ ul.missing { margin: 8px 0 0; padding-left: 20px; }
   table.stack.compacto-m tbody tr { position: relative; padding-right: 32px; display: flex; flex-direction: column; }
   table.stack.compacto-m tbody tr::after { content: '›'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; color: var(--muted); }
   table.stack.compacto-m td { border-bottom: none; padding-top: 4px; padding-bottom: 4px; }
+  table.stack.compacto-m.so-1 td { padding-left: 0; } /* um só campo: sem rótulo */
+  table.stack.compacto-m.so-1 td::before { display: none; }
 }
 
 @media print {

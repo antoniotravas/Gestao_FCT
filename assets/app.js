@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107j';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107j';
-import { gerarXlsx } from './xlsx.js?v=20261107j';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107k';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107k';
+import { gerarXlsx } from './xlsx.js?v=20261107k';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -272,6 +272,7 @@ async function removeRecord(name, id, after) {
 const CARTAO_M = {
   colocacoes: ['aluno_id', 'empresa_id'],
   alunos: ['nome', 'telefone', 'email'],
+  empresas: ['nome'],
 };
 /** Afetação atual do aluno (a mais recente que não esteja «Interrompida»), ou null. */
 const afetacaoDe = (alunoId) => rows('colocacoes').filter((c) => Number(c.aluno_id) === Number(alunoId) && c.estado !== 'Interrompida')
@@ -296,7 +297,7 @@ function table(name, list, { hide = [], extraCols = [], rowClass = () => '' } = 
   const so = CARTAO_M[name];
   const cls = (f) => [f.type === 'textarea' || f.type === 'text' ? 'clip' : '', so && !so.includes(f.name) ? 'm-hide' : ''].join(' ').trim();
   const ordem = (f) => (so?.includes(f.name) ? ` style="order:${so.indexOf(f.name)}"` : '');
-  return `<div class="table-wrap"><table${so ? ' class="compacto-m"' : ''}><thead><tr>
+  return `<div class="table-wrap"><table${so ? ` class="compacto-m${so.length === 1 ? ' so-1' : ''}"` : ''}><thead><tr>
     ${cols.map((f) => `<th>${esc(f.label)}</th>`).join('')}${extraCols.map((c) => `<th>${esc(c.label)}</th>`).join('')}
     </tr></thead><tbody>${list.map((r) => `<tr class="click ${rowClass(r)}" data-go="#/ver/${name}/${r.id}">
       ${cols.map((f) => `<td data-f="${f.name}" class="${cls(f)}"${ordem(f)}>${fmtValue(f, r[f.name])}</td>`).join('')}
