@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107g';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107g';
-import { gerarXlsx } from './xlsx.js?v=20261107g';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107h';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107h';
+import { gerarXlsx } from './xlsx.js?v=20261107h';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -930,7 +930,7 @@ const FORM_HOOKS = {
       const ini = $('[name=data_inicio]', form), fim = $('[name=data_fim]', form), hDia = $('[name=horas_diarias]', form);
       fim.closest('label').querySelector('span').insertAdjacentHTML('beforeend', ' <span class="sub" id="fim-calc"></span>');
       const calcFim = () => {
-        const total = Number(horas.value), porDia = Number(hDia.value) || 7;
+        const total = Number(horas.value), porDia = Number(hDia.value) || 8;
         if (!ini.value || !(total > 0)) return;
         const dias = Math.ceil(total / porDia);
         fim.value = somarDiasUteis(ini.value, dias);
