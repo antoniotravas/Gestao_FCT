@@ -300,3 +300,16 @@ dialog label.check span { display: flex; gap: 8px; align-items: center; }
   .combo-in input { font-size: 16px; } /* evita o zoom automático do iPhone ao tocar na caixa */
   .combo-list li { padding: 12px 10px; }
 }
+
+/* Ícones SVG (sprite em index.html, ico() em app.js) */
+.ico { width: 1.25em; height: 1.25em; vertical-align: -.27em; flex-shrink: 0; overflow: visible; }
+h1 .ico, h2 .ico { width: 1.1em; height: 1.1em; vertical-align: -.17em; margin-right: .1em; }
+.sidebar nav a { align-items: center; }
+.sidebar nav a .nav-ico { display: inline-flex; }
+.sidebar nav a .ico { width: 20px; height: 20px; }
+.tabbar .tab-ico { display: inline-flex; }
+.tabbar .ico { width: 24px; height: 24px; }
+#logout { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 800px) {
+  .sidebar nav a .ico { width: 34px; height: 34px; }
+}

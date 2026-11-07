@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107o';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107o';
-import { gerarXlsx } from './xlsx.js?v=20261107o';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107p';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107p';
+import { gerarXlsx } from './xlsx.js?v=20261107p';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -352,7 +352,7 @@ function viewDashboard() {
   const card = (num, lbl, href) => `<a class="card" href="${href}"><div class="num">${num}</div><div class="lbl">${lbl}</div></a>`;
   const ev = (list, empty) => list.length ? `<ul class="events">${list.join('')}</ul>` : `<p class="empty">${empty}</p>`;
 
-  return `<div class="page-head"><div><h1>Painel</h1>
+  return `<div class="page-head"><div><h1>${ico('painel')} Painel</h1>
       <div class="sub">${esc([S.settings.curso, S.settings.ano_letivo].filter(Boolean).join(' · ') || 'Configure o curso e ano letivo em Definições')}</div></div></div>
     <div class="grid cards">
       ${card(alunos.length, `alunos · <b>${semColocacao.length}</b> sem afetação`, '#/lista/alunos')}
@@ -403,7 +403,7 @@ function viewList(name) {
   const estado = e.fields.find((f) => f.name === 'estado');
   const q = listState(name);
   const anos = hasYear(name) ? [...new Set(rows(name).map((r) => r.ano_letivo).filter(Boolean))].sort().reverse() : [];
-  return `<div class="page-head"><h1>${e.icon} ${esc(e.label)}</h1>
+  return `<div class="page-head"><h1>${eIco(name)} ${esc(e.label)}</h1>
       <div class="actions">${name === 'empresas' ? `<button class="btn" id="view-toggle">${q.view === 'quadro' ? '☰ Ver lista' : '▦ Ver quadro'}</button>` : ''}
       ${name === 'empresas' ? '<a class="btn" href="#/importar/empresas">📥 Importar</a>' : ''}
       ${name === 'alunos' ? '<a class="btn" href="#/importar/alunos">📥 Importar alunos</a>' : ''}
@@ -520,7 +520,7 @@ function viewFicha(id) {
   const e = get('empresas', id);
   if (!e) return '<p>Empresa não encontrada.</p>';
   return `<div class="page-head"><div><div class="sub"><a href="#/ver/empresas/${e.id}">← ${esc(e.nome)}</a></div>
-      <h1>📄 Ficha para conferência</h1><div class="sub">Copie a tabela e cole-a no email para a empresa confirmar os dados.</div></div>
+      <h1>${ico('protocolos')} Ficha para conferência</h1><div class="sub">Copie a tabela e cole-a no email para a empresa confirmar os dados.</div></div>
       <div class="actions"><button class="btn primary" id="fc-copiar">📋 Copiar tabela</button></div></div>
     <div class="panel" id="fc-tabela" style="overflow-x:auto">${fichaTabela(e)}</div>`;
 }
@@ -566,7 +566,7 @@ const lst = { ano: null, q: '' };
 function viewListagem() {
   const ano = lst.ano ?? S.settings.ano_letivo ?? '';
   const anos = [...new Set(rows('alunos').map((a) => a.ano_letivo).filter(Boolean))].sort().reverse();
-  return `<div class="page-head"><div><h1>📋 Listagem breve</h1>
+  return `<div class="page-head"><div><h1>${ico('listagem')} Listagem breve</h1>
       <div class="sub">Aluno, contacto, empresa, tutor e contacto — uma linha por aluno.</div></div>
       <div class="actions no-print"><button class="btn" onclick="window.print()">🖨️ Imprimir</button>
         <button class="btn" id="lst-xlsx">⬇️ Excel (esta listagem)</button>
@@ -618,7 +618,7 @@ function viewDetail(name, id) {
       <p style="margin:0">${loc.nome ? `<b>${esc(loc.nome)}</b><br>` : ''}${esc(loc.morada) || '<span class="sub">Sem morada registada</span>'}
       ${loc.sede ? '<br><span class="sub">Igual à morada da sede da empresa (o local de estágio não foi preenchido).</span>' : ''}</p></div>`;
   }
-  return `<div class="page-head"><div><div class="sub"><a href="#/lista/${e.hidden ? '' : name}">${e.icon} ${esc(e.label)}</a></div>
+  return `<div class="page-head"><div><div class="sub"><a href="#/lista/${e.hidden ? '' : name}">${eIco(name)} ${esc(e.label)}</a></div>
       <h1>${esc(label(name, r))}</h1></div>
       <div class="actions">
         ${name === 'colocacoes' ? `<a class="btn primary" href="#/plano/${r.id}">📘 Plano de estágio</a>` : ''}
@@ -633,7 +633,7 @@ function viewDetail(name, id) {
     ${kids.map((k) => {
       const ce = ent(k.entity);
       const list = rows(k.entity).filter((x) => x[k.field] === r.id);
-      return `<div class="panel"><div class="section-head"><h2>${ce.icon} ${esc(ce.label)} <span class="sub">(${list.length})</span></h2>
+      return `<div class="panel"><div class="section-head"><h2>${eIco(k.entity)} ${esc(ce.label)} <span class="sub">(${list.length})</span></h2>
         <button class="btn small" data-add="${k.entity}" data-field="${k.field}">+ Adicionar</button></div>
         ${table(k.entity, list, { hide: [k.field], extraCols: extraColsFor(k.entity) })}</div>`;
     }).join('')}`;
@@ -1070,7 +1070,7 @@ function viewPending() {
       <td class="nowrap"><button class="btn small" data-resolve="${c.id}" title="O pendente foi tratado">✓ Resolvido</button>
         <button class="btn small" data-snooze="${c.id}" title="Adiar o prazo uma semana">+1 semana</button>
         <button class="btn small" data-new-contact="${c.empresa_id}" data-prev="${c.id}" title="Registar um novo contacto sobre este assunto">📝 Novo contacto</button></td></tr>`;
-  return `<div class="page-head"><div><h1>📌 Pendentes com empresas</h1>
+  return `<div class="page-head"><div><h1>${ico('pendentes')} Pendentes com empresas</h1>
       <div class="sub">Respostas que aguarda, coisas que tem de enviar ou fazer, e o que as empresas ficaram de enviar.</div></div></div>
     <div class="toolbar"><select id="pf"><option value="">Todos os pendentes</option>${opts.map((o) => `<option ${o === pendFilter.tipo ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></div>
     ${groups.length ? groups.map(([title, l]) => `<div class="panel"><h2>${title} <span class="sub">(${l.length})</span></h2>
@@ -1136,7 +1136,7 @@ function viewPlano(colId) {
   const grupos = [...new Set(falta.map((f) => f.grupo))];
   const ativ = planoAtividades(c.id);
   return `<div class="page-head"><div><div class="sub"><a href="#/ver/colocacoes/${c.id}">← ${esc(label('colocacoes', c))}</a></div>
-      <h1>📘 Plano de estágio</h1><div class="sub">Modelo da escola, preenchido com os dados da aplicação. O conteúdo variável pode ser ajustado abaixo.</div></div>
+      <h1>${ico('planos')} Plano de estágio</h1><div class="sub">Modelo da escola, preenchido com os dados da aplicação. O conteúdo variável pode ser ajustado abaixo.</div></div>
       <div class="actions"><button class="btn primary" id="plano-docx">⬇️ Descarregar Word (.docx)</button></div></div>
     ${falta.length ? `<div class="panel warn-panel"><b>⚠️ Dados em falta</b> <span class="sub">— ficam em branco no documento (pode completar aqui ou à mão no Word)</span>
       <ul class="missing">${grupos.map((g) => `<li><a href="${link[g]}">${esc(g)}</a>: ${falta.filter((f) => f.grupo === g).map((f) => esc(f.campo)).join(', ')}</li>`).join('')}</ul></div>`
@@ -1261,7 +1261,7 @@ function viewSettings() {
   const P = S.perfil || {};
   const pf = Object.fromEntries(S.schema.perfil.map((f) => [f.name, f]));
   const lembOn = P.lembretes_ativos === 'Sim';
-  return `<div class="page-head"><h1>⚙️ Definições</h1></div>
+  return `<div class="page-head"><h1>${ico('definicoes')} Definições</h1></div>
     <form class="panel" id="perfil"><h2>👤 O meu perfil e lembretes por email</h2>
       <p class="sub">Os lembretes trazem as tarefas, os pendentes com empresas, as entrevistas e as reuniões que se aproximam.
         São enviados <b>só para si</b>, no máximo uma vez por dia — a aplicação não envia emails a empresas nem a alunos.</p>
@@ -1423,16 +1423,16 @@ function viewImport(modo) {
   const sh = imp.sheets[imp.sheet];
   const ano = imp.ano ?? S.settings.ano_letivo ?? '';
   let html = imp.soAlunos
-    ? `<div class="page-head"><div><div class="sub"><a href="#/lista/alunos">← Alunos</a></div><h1>📥 Importar alunos</h1>
+    ? `<div class="page-head"><div><div class="sub"><a href="#/lista/alunos">← Alunos</a></div><h1>${ico('importar')} Importar alunos</h1>
       <div class="sub">Carregue a lista de alunos em Excel (.xlsx) ou CSV, uma linha por aluno. Use o modelo para ter as colunas certas —
       ou o seu próprio ficheiro: as colunas são reconhecidas automaticamente e pode ajustar a correspondência.
       Os alunos ficam no curso <b>${esc(S.cursos.find((c) => c.id === S.curso_id)?.nome || '—')}</b>.</div></div>
       <div class="actions"><button class="btn primary" id="imp-modelo" type="button">⬇️ Descarregar modelo Excel</button></div></div>`
     : imp.soEmpresas
-    ? `<div class="page-head"><div><div class="sub"><a href="#/lista/empresas">← Empresas</a></div><h1>📥 Importar empresas</h1>
+    ? `<div class="page-head"><div><div class="sub"><a href="#/lista/empresas">← Empresas</a></div><h1>${ico('importar')} Importar empresas</h1>
       <div class="sub">Carregue uma lista de empresas em Excel (.xlsx) ou CSV, uma linha por empresa (ex.: Empresa, Status, Contacto, Email, Telefone, Morada).
       As colunas são reconhecidas automaticamente; os contactos ficam também em «Pessoas de contacto» da empresa.</div></div></div>`
-    : `<div class="page-head"><div><h1>📥 Importar dados</h1>
+    : `<div class="page-head"><div><h1>${ico('importar')} Importar dados</h1>
       <div class="sub">Carregue um ficheiro Excel (.xlsx) ou CSV com uma linha por aluno. As colunas são reconhecidas automaticamente e pode ajustar a correspondência.
       Para uma lista só de empresas use <a href="#/importar/empresas">Importar empresas</a>.</div></div></div>`;
   html += `
@@ -1559,18 +1559,25 @@ function bindImport(modo) {
 }
 
 /* ---------------- Router ---------------- */
+/** Ícone SVG da aplicação (definidos em index.html: <symbol id="ic-...">). Entidades usam o próprio nome. */
+const ICO_IDS = new Set(['painel', 'empresas', 'pendentes', 'contactos', 'protocolos', 'tarefas', 'alunos', 'listagem', 'professores',
+  'entrevistas', 'colocacoes', 'atividades', 'reunioes', 'importar', 'utilizadores', 'definicoes', 'sair', 'mais', 'pessoas', 'planos']);
+const ico = (id) => (ICO_IDS.has(id) ? `<svg class="ico" aria-hidden="true"><use href="#ic-${id}"/></svg>` : '');
+/** Ícone de uma entidade (SVG se existir; senão o emoji do schema). */
+const eIco = (name) => ico(name) || ent(name)?.icon || '';
+
 /** Barra de baixo no telemóvel: páginas mais usadas; o resto fica em «Mais». */
 const TABBAR = ['#/', '#/lista/empresas', '#/lista/alunos', '#/lista/colocacoes'];
 
 function renderNav(route) {
-  const it = (n) => [`#/lista/${n}`, ent(n).icon, ent(n).label];
+  const it = (n) => [`#/lista/${n}`, eIco(n), ent(n).label];
   const grupos = [
-    ['', [['#/', '📊', 'Painel']]], // grupo só com o Painel: no telemóvel fica vazio (está na barra de baixo)
-    ['Empresas', [it('empresas'), ['#/pendentes', '📌', 'Pendentes', pendingDueCount()], it('contactos'), it('protocolos'),
+    ['', [['#/', ico('painel'), 'Painel']]], // grupo só com o Painel: no telemóvel fica vazio (está na barra de baixo)
+    ['Empresas', [it('empresas'), ['#/pendentes', ico('pendentes'), 'Pendentes', pendingDueCount()], it('contactos'), it('protocolos'),
       [...it('tarefas'), tarefasDue()]]],
-    ['Alunos e estágios', [it('alunos'), ['#/listagem', '📋', 'Listagem breve'], [`#/lista/professores`, ent('professores').icon, 'Professores'],
+    ['Alunos e estágios', [it('alunos'), ['#/listagem', ico('listagem'), 'Listagem breve'], [`#/lista/professores`, eIco('professores'), 'Professores'],
       it('entrevistas'), it('colocacoes'), it('atividades'), it('reunioes')]],
-    ['Sistema', [['#/importar', '📥', 'Importar'], ...(S.eu.admin ? [['#/utilizadores', '👥', 'Utilizadores']] : []), ['#/definicoes', '⚙️', 'Definições']]],
+    ['Sistema', [['#/importar', ico('importar'), 'Importar'], ...(S.eu.admin ? [['#/utilizadores', ico('utilizadores'), 'Utilizadores']] : []), ['#/definicoes', ico('definicoes'), 'Definições']]],
   ];
   const cur = '#/' + route.split('/').slice(0, 2).join('/').replace(/^ver\//, 'lista/');
   const ativo = (h) => (h === '#/' ? cur === '#/' : cur.startsWith(h));
@@ -1584,7 +1591,7 @@ function renderNav(route) {
   const noMais = !tabs.some((i) => ativo(i[0]));
   const extra = (pendingDueCount() || 0) + (tarefasDue() || 0);
   $('#tabbar').innerHTML = tabs.map((i) => `<a href="${i[0]}" class="${ativo(i[0]) ? 'active' : ''}"><span class="tab-ico">${i[1]}</span><span>${esc(i[2])}</span></a>`).join('')
-    + `<button type="button" id="tab-mais" class="${noMais ? 'active' : ''}" aria-expanded="false"><span class="tab-ico">☰</span><span>Mais</span>${extra ? `<span class="nav-count">${extra}</span>` : ''}</button>`;
+    + `<button type="button" id="tab-mais" class="${noMais ? 'active' : ''}" aria-expanded="false"><span class="tab-ico">${ico('mais')}</span><span>Mais</span>${extra ? `<span class="nav-count">${extra}</span>` : ''}</button>`;
   $('#tab-mais').onclick = () => setMenu(!$('.sidebar').classList.contains('open'));
 }
 
@@ -1673,7 +1680,7 @@ function viewUtilizadores() {
   if (!S.eu.admin) return '<p>Só o administrador tem acesso a esta página.</p>';
   if (!US.lista) { carregarUtilizadores().then(render).catch((err) => toast(err.message, true)); return '<p class="sub">A carregar…</p>'; }
   const nomeCurso = Object.fromEntries(US.cursos.map((c) => [c.id, c.nome]));
-  return `<div class="page-head"><div><h1>👥 Utilizadores e cursos</h1>
+  return `<div class="page-head"><div><h1>${ico('utilizadores')} Utilizadores e cursos</h1>
       <div class="sub">Os diretores de curso só veem os alunos (e afetações, protocolos, entrevistas, planos, reuniões, tarefas) dos seus cursos.
         Empresas, pessoas de contacto, professores e contactos são partilhados por todos.</div></div>
       <div class="actions"><button class="btn primary" id="u-novo">➕ Novo utilizador</button></div></div>
