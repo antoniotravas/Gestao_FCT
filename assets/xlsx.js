@@ -1,5 +1,5 @@
 // Ficheiro Excel (.xlsx) simples, sem bibliotecas: uma folha por tabela, 1.ª linha em negrito e fixa, filtros.
-import { zip } from './plano.js?v=20261107l';
+import { zip } from './plano.js?v=20261107n';
 
 const x = (t) => String(t ?? '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

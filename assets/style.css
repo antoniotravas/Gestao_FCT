@@ -19,7 +19,10 @@ h2 { font-size: 1.1rem; margin: 0 0 12px; }
 .sidebar nav a { color: #cfd8e3; padding: 8px 10px; border-radius: 6px; display: flex; gap: 8px; }
 .sidebar nav a:hover { background: #2a3d52; text-decoration: none; }
 .sidebar nav a.active { background: var(--accent); color: #fff; }
-.sidebar nav .sep { border-top: 1px solid #2f4257; margin: 8px 0; }
+.sidebar nav .nav-grp { display: flex; flex-direction: column; gap: 2px; }
+.sidebar nav .nav-grp + .nav-grp { border-top: 1px solid #2f4257; margin-top: 8px; padding-top: 8px; }
+.sidebar nav .nav-h { display: none; }
+.tabbar { display: none; }
 .sidebar .btn.link { color: #9fb0c3; }
 .who { padding: 0 10px 12px; margin-bottom: 6px; border-bottom: 1px solid #2f4257; font-size: .85rem; }
 .who-nome { color: #fff; font-weight: 600; }
@@ -154,20 +157,41 @@ ul.missing { margin: 8px 0 0; padding-left: 20px; }
 
 @media (max-width: 800px) {
   .app { grid-template-columns: 1fr; }
-  .sidebar { position: sticky; top: 0; z-index: 20; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 8px 10px; }
-  .sidebar .menu-toggle { display: inline-flex; }
-  .sidebar nav, .sidebar #logout { display: none; flex-basis: 100%; }
-  .sidebar.open nav { display: flex; max-height: calc(100vh - 110px); overflow-y: auto; padding-top: 6px; }
-  .sidebar.open #logout { display: block; text-align: left; }
-  .who { flex-basis: 100%; display: none; margin: 8px 0 0; padding: 0 6px 10px; } /* logo abaixo do título, antes do menu (como no computador) */
-  .sidebar.open .who { display: block; }
+  /* Barra de cima: só o título. O menu completo abre no botão «Mais» da barra de baixo. */
+  .sidebar { position: sticky; top: 0; z-index: 20; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px 12px; gap: 0; }
+  .brand { padding: 0 4px; font-size: 1.1rem; }
+  .sidebar .menu-toggle { display: none; }
+  .sidebar nav, .sidebar #logout, .who { display: none; }
+  /* Painel «Mais»: ocupa o ecrã acima da barra de baixo, com as opções em grelha */
+  .sidebar.open { position: fixed; inset: 0 0 calc(62px + env(safe-area-inset-bottom)) 0; z-index: 30; overflow-y: auto; align-content: flex-start; padding: 12px 12px 16px; animation: sobe .18s ease-out; }
+  .sidebar.open .who { display: block; flex-basis: 100%; margin: 10px 0 4px; padding: 0 4px 12px; }
+  .sidebar.open nav { display: block; flex-basis: 100%; padding-top: 6px; }
+  .sidebar.open #logout { display: block; flex-basis: 100%; text-align: center; margin-top: 6px; }
+  .sidebar nav .nav-grp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .sidebar nav .nav-grp + .nav-grp { border-top: 0; margin-top: 14px; padding-top: 0; }
+  .sidebar nav .nav-h { display: block; grid-column: 1 / -1; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #8193a8; font-weight: 600; margin-bottom: -2px; }
+  .sidebar nav a { position: relative; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; padding: 12px 4px; min-height: 76px; background: #24364a; border-radius: 12px; font-size: .78rem; line-height: 1.2; }
+  .sidebar nav a .nav-ico { font-size: 1.45rem; line-height: 1; }
+  .sidebar nav a .nav-count { position: absolute; top: 6px; right: 6px; margin: 0; }
+  body.menu-aberto { overflow: hidden; }
+  .sidebar nav a.em-tab { display: none; } /* já estão na barra de baixo */
+  .sidebar nav .nav-grp:not(:has(a:not(.em-tab))) { display: none; }
   .who-nome .nome-pc { display: none; }
   .who-nome .nome-m { display: inline; }
-  .brand { padding: 0 6px; }
-  main { padding: 16px; }
+  /* Barra de baixo */
+  .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    background: #1d2b3a; border-top: 1px solid #2f4257; padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); }
+  .tabbar a, .tabbar button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px;
+    color: #9fb0c3; font: inherit; font-size: .7rem; background: none; border: 0; border-radius: 10px; cursor: pointer; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+  .tabbar .tab-ico { font-size: 1.3rem; line-height: 1; }
+  .tabbar .active, .tabbar .aberto { color: #fff; background: #2a3d52; }
+  .tabbar .nav-count { position: absolute; top: 3px; right: calc(50% - 22px); margin: 0; }
+  main { padding: 16px 16px calc(80px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(76px + env(safe-area-inset-bottom)); left: 16px; right: 16px; max-width: none; }
   dialog .form-grid, .panel .form-grid { grid-template-columns: 1fr; }
   .doc { padding: 24px; }
 }
+@keyframes sobe { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
 /* Telemóvel: tabelas como cartões (os rótulos vêm de data-label, ver labelTables em app.js) */
 @media (max-width: 640px) {

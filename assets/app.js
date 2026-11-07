@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107l';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107l';
-import { gerarXlsx } from './xlsx.js?v=20261107l';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107n';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107n';
+import { gerarXlsx } from './xlsx.js?v=20261107n';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1593,28 +1593,33 @@ function bindImport(modo) {
 }
 
 /* ---------------- Router ---------------- */
+/** Barra de baixo no telemóvel: páginas mais usadas; o resto fica em «Mais». */
+const TABBAR = ['#/', '#/lista/empresas', '#/lista/alunos', '#/lista/colocacoes'];
+
 function renderNav(route) {
-  const items = [
-    ['#/', '📊', 'Painel'],
-    'sep',
-    [`#/lista/empresas`, ent('empresas').icon, ent('empresas').label],
-    ['#/pendentes', '📌', 'Pendentes', pendingDueCount()],
-    ...['contactos', 'protocolos'].map((n) => [`#/lista/${n}`, ent(n).icon, ent(n).label]),
-    [`#/lista/tarefas`, ent('tarefas').icon, ent('tarefas').label, tarefasDue()],
-    'sep',
-    [`#/lista/alunos`, ent('alunos').icon, ent('alunos').label],
-    ['#/listagem', '📋', 'Listagem breve'],
-    [`#/lista/professores`, ent('professores').icon, 'Professores'],
-    ...['entrevistas', 'colocacoes', 'atividades'].map((n) => [`#/lista/${n}`, ent(n).icon, ent(n).label]),
-    [`#/lista/reunioes`, ent('reunioes').icon, ent('reunioes').label],
-    'sep',
-    ['#/importar', '📥', 'Importar'],
-    ...(S.eu.admin ? [['#/utilizadores', '👥', 'Utilizadores']] : []),
-    ['#/definicoes', '⚙️', 'Definições'],
+  const it = (n) => [`#/lista/${n}`, ent(n).icon, ent(n).label];
+  const grupos = [
+    ['', [['#/', '📊', 'Painel']]], // grupo só com o Painel: no telemóvel fica vazio (está na barra de baixo)
+    ['Empresas', [it('empresas'), ['#/pendentes', '📌', 'Pendentes', pendingDueCount()], it('contactos'), it('protocolos'),
+      [...it('tarefas'), tarefasDue()]]],
+    ['Alunos e estágios', [it('alunos'), ['#/listagem', '📋', 'Listagem breve'], [`#/lista/professores`, ent('professores').icon, 'Professores'],
+      it('entrevistas'), it('colocacoes'), it('atividades'), it('reunioes')]],
+    ['Sistema', [['#/importar', '📥', 'Importar'], ...(S.eu.admin ? [['#/utilizadores', '👥', 'Utilizadores']] : []), ['#/definicoes', '⚙️', 'Definições']]],
   ];
   const cur = '#/' + route.split('/').slice(0, 2).join('/').replace(/^ver\//, 'lista/');
-  $('#nav').innerHTML = items.map((i) => i === 'sep' ? '<div class="sep"></div>'
-    : `<a href="${i[0]}" class="${(i[0] === '#/' ? cur === '#/' : cur.startsWith(i[0])) ? 'active' : ''}"><span>${i[1]}</span>${esc(i[2])}${i[3] ? `<span class="nav-count" title="Para hoje ou atrasados">${i[3]}</span>` : ''}</a>`).join('');
+  const ativo = (h) => (h === '#/' ? cur === '#/' : cur.startsWith(h));
+  const conta = (n) => (n ? `<span class="nav-count" title="Para hoje ou atrasados">${n}</span>` : '');
+  $('#nav').innerHTML = grupos.map(([titulo, items]) => `<div class="nav-grp">${titulo ? `<div class="nav-h">${esc(titulo)}</div>` : ''}
+    ${items.map((i) => `<a href="${i[0]}" class="${ativo(i[0]) ? 'active' : ''}${TABBAR.includes(i[0]) ? ' em-tab' : ''}"><span class="nav-ico">${i[1]}</span><span class="nav-txt">${esc(i[2])}</span>${conta(i[3])}</a>`).join('')}</div>`).join('');
+
+  // telemóvel: barra de baixo (o «Mais» abre o painel com todas as opções; o número soma pendentes e tarefas)
+  const todos = grupos.flatMap((g) => g[1]);
+  const tabs = TABBAR.map((h) => todos.find((i) => i[0] === h)).filter(Boolean);
+  const noMais = !tabs.some((i) => ativo(i[0]));
+  const extra = (pendingDueCount() || 0) + (tarefasDue() || 0);
+  $('#tabbar').innerHTML = tabs.map((i) => `<a href="${i[0]}" class="${ativo(i[0]) ? 'active' : ''}"><span class="tab-ico">${i[1]}</span><span>${esc(i[2])}</span></a>`).join('')
+    + `<button type="button" id="tab-mais" class="${noMais ? 'active' : ''}" aria-expanded="false"><span class="tab-ico">☰</span><span>Mais</span>${extra ? `<span class="nav-count">${extra}</span>` : ''}</button>`;
+  $('#tab-mais').onclick = () => setMenu(!$('.sidebar').classList.contains('open'));
 }
 
 function render() {
@@ -1828,7 +1833,13 @@ async function boot() {
   }
 }
 
-const setMenu = (open) => { $('.sidebar').classList.toggle('open', open); $('#menu-toggle').setAttribute('aria-expanded', String(open)); };
+const setMenu = (open) => {
+  $('.sidebar').classList.toggle('open', open);
+  document.body.classList.toggle('menu-aberto', open); // telemóvel: o painel cobre a página, que não deve deslizar por trás
+  $('#menu-toggle').setAttribute('aria-expanded', String(open));
+  $('#tab-mais')?.setAttribute('aria-expanded', String(open));
+  $('#tab-mais')?.classList.toggle('aberto', open);
+};
 $('#menu-toggle').onclick = () => setMenu(!$('.sidebar').classList.contains('open'));
 window.addEventListener('hashchange', () => { setMenu(false); if (!$('#app').hidden) render(); });
 $('#logout').onclick = async () => { await api('logout', { body: {} }); showLogin(false); };
