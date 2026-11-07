@@ -23,6 +23,7 @@ h2 { font-size: 1.1rem; margin: 0 0 12px; }
 .sidebar .btn.link { color: #9fb0c3; }
 .who { padding: 0 10px 12px; margin-bottom: 6px; border-bottom: 1px solid #2f4257; font-size: .85rem; }
 .who-nome { color: #fff; font-weight: 600; }
+.who-nome .nome-m { display: none; }
 .who .sub { color: #9fb0c3; }
 .who-curso { margin-top: 6px; color: #cfd8e3; }
 .who-curso a { color: #9cc3f0; }
@@ -160,6 +161,8 @@ ul.missing { margin: 8px 0 0; padding-left: 20px; }
   .sidebar.open #logout { display: block; text-align: left; }
   .who { order: 3; flex-basis: 100%; display: none; border: 0; padding: 6px 6px 0; }
   .sidebar.open .who { display: block; }
+  .who-nome .nome-pc { display: none; }
+  .who-nome .nome-m { display: inline; }
   .brand { padding: 0 6px; }
   main { padding: 16px; }
   dialog .form-grid, .panel .form-grid { grid-template-columns: 1fr; }

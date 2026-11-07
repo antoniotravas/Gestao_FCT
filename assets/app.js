@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107i';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107i';
-import { gerarXlsx } from './xlsx.js?v=20261107i';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107j';
+import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107j';
+import { gerarXlsx } from './xlsx.js?v=20261107j';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1677,7 +1677,9 @@ function showLogin(setup) {
 /** Utilizador com sessão iniciada e curso em que está a trabalhar (o admin e quem tem vários cursos pode mudar). */
 function renderWho() {
   const { eu, cursos, curso_id } = S;
-  $('#who').innerHTML = `<div class="who-nome">${esc(eu.nome || '')}</div>
+  const nome = (eu.nome || '').trim();
+  // no telemóvel mostra-se só o primeiro nome (o CSS escolhe qual dos dois aparece)
+  $('#who').innerHTML = `<div class="who-nome"><span class="nome-pc">${esc(nome)}</span><span class="nome-m">${esc(nome.split(/\s+/)[0])}</span></div>
     <div class="sub">${eu.admin ? 'Administrador' : 'Diretor(a) de curso'}</div>
     ${cursos.length > 1 ? `<select id="curso-sel" aria-label="Curso">${cursos.map((c) => `<option value="${c.id}" ${c.id === curso_id ? 'selected' : ''}>${esc(c.nome)}</option>`).join('')}</select>`
       : cursos.length ? `<div class="who-curso">${esc(cursos[0].nome)}</div>`
