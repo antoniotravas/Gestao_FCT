@@ -153,3 +153,15 @@ dias. É enviado só para si, uma vez por dia: ao abrir a aplicação ou, melhor
 
 ### Importar empresas
 Na página **Empresas → 📥 Importar** carregue uma lista de empresas (.xlsx ou .csv, uma linha por empresa). As colunas (Empresa/Designação social, NIF/NIPC, Status, Contacto, Email, Telefone, Morada, Cód. Postal, Representante…) são reconhecidas automaticamente. O «Status» passa a estado (Aceite → Parceira, Contactada/Documentos enviados → Em contacto, Não aceitou → Sem disponibilidade); cada contacto fica também em «Pessoas de contacto». Empresas já existentes são reconhecidas pelo nome, NIF ou email e, por omissão, só se preenchem os campos vazios. Use primeiro **Pré-visualizar** para ver avisos.
+
+## Atualizar o servidor a partir do GitHub
+
+A pasta da aplicação no servidor é um clone deste repositório (só leitura, por HTTPS). Depois de `git push`:
+
+```bash
+ssh utilizador@servidor "cd ~/domains/<domínio>/public_html && git pull --ff-only"
+```
+
+`config.php`, as bases de dados (`data/*.sqlite`), `data/protocolos/` e `data/logos/` estão no `.gitignore`
+e nunca são alterados pelo `git pull`. Se alguém tiver mudado ficheiros diretamente no servidor, o `git pull`
+pára e avisa (ver com `git status`) em vez de os apagar. A pasta `.git` está bloqueada no `.htaccess`.

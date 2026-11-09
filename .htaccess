@@ -6,13 +6,16 @@ Options -Indexes
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteRule ^(lib|data)(/|$) - [F,L]
+  RewriteRule ^(lib|data|\.git)(/|$) - [F,L]
+  RewriteRule (^|/)\.git(ignore|attributes)?$ - [F,L]
   RewriteRule (^|/)config(\.sample)?\.php$ - [F,L]
   RewriteRule \.(sqlite|sqlite-wal|sqlite-shm|db|md)$ - [F,L]
 </IfModule>
 
 # LiteSpeed (alguns alojamentos ignoram as regras acima): mod_alias
 RedirectMatch 403 ^/(lib|data)(/|$)
+# Atualização por git (git pull no servidor): a pasta .git não pode ser lida pelo browser
+RedirectMatch 403 (^|/)\.git
 RedirectMatch 403 /config(\.sample)?\.php$
 RedirectMatch 403 \.(sqlite|sqlite-wal|sqlite-shm|db|md)$
 
