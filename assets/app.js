@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261109b';
-import { planoVars, planoEmFalta, gerarPlanoDocx, gerarFichaDocx, FICHA_CAMPOS, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261109b';
-import { gerarXlsx } from './xlsx.js?v=20261109b';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261109c';
+import { planoVars, planoEmFalta, gerarPlanoDocx, gerarFichaDocx, FICHA_CAMPOS, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261109c';
+import { gerarXlsx } from './xlsx.js?v=20261109c';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -283,7 +283,7 @@ const corta = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s)
 function listOpts(name) {
   const o = { extraCols: extraColsFor(name) };
   if (name === 'alunos') {
-    o.hide = ['ano_letivo']; // processo, nome, turma, curso, email, telefone + empresa
+    o.hide = ['ano_letivo', 'curso']; // processo, nome, turma, email, telefone + empresa (o curso é o do diretor: igual em todas as linhas)
     o.rowClass = (r) => (afetacaoDe(r.id) ? 'afeto' : '');
   }
   return o;
