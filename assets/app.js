@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261107r';
-import { planoVars, planoEmFalta, gerarPlanoDocx, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261107r';
-import { gerarXlsx } from './xlsx.js?v=20261107r';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261109a';
+import { planoVars, planoEmFalta, gerarPlanoDocx, gerarFichaDocx, FICHA_CAMPOS, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261109a';
+import { gerarXlsx } from './xlsx.js?v=20261109a';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -496,32 +496,26 @@ function exportarTudo() {
   toast('Exportação descarregada.');
 }
 
-/* ---------- Ficha da empresa para conferência de dados (PDF pela impressão, ou TXT) ---------- */
-const FICHA_CAMPOS = [
-  ['Denominação social', 'nome'], ['NIF / NIPC', 'nif'], ['Natureza jurídica', 'natureza_juridica'], ['Tipo de entidade', 'tipo'],
-  ['Atividade principal', 'setor'], ['Morada da sede', 'morada'], ['Código postal', 'codigo_postal'], ['Localidade / Concelho', 'localidade'],
-  ['Telefone', 'telefone'], ['Email', 'email'], ['Website', 'website'],
-  ['Representante legal', 'representante_legal'], ['Cargo do representante legal', 'cargo_representante'],
-  ['Pessoa de contacto principal', 'responsavel'], ['Cargo', 'cargo_responsavel'], ['Email da pessoa de contacto', 'email_responsavel'],
-  ['Telefone da pessoa de contacto', 'telefone_responsavel'], ['Vagas para estagiários', 'vagas'],
-];
+/* ---------- Ficha da empresa para conferência de dados (tabela para copiar ou Word PT/EN) ---------- */
 /** Ficha para conferência: tabela simples (Campo | Valor) para copiar e colar num email.
  *  Os estilos ficam dentro da tabela (inline) para se manterem ao colar no programa de email. */
 function fichaTabela(e) {
   const td = 'border:1px solid #999;padding:4px 8px;text-align:left;vertical-align:top;font-family:Arial,sans-serif;font-size:13px';
   const val = (k) => (e[k] != null && e[k] !== '' ? esc(k === 'vagas' ? fmtNum(e[k]) : e[k]) : '');
-  return `<table style="border-collapse:collapse"><tbody>${FICHA_CAMPOS.map(([l, k]) =>
+  return `<table style="border-collapse:collapse"><tbody>${FICHA_CAMPOS.map(([l, , k]) =>
     `<tr><td style="${td};font-weight:bold;background:#f2f2f2">${esc(l)}</td><td style="${td};min-width:260px">${val(k)}</td></tr>`).join('')}</tbody></table>`;
 }
 function fichaTexto(e) { // para colar onde não se aceita HTML
-  return FICHA_CAMPOS.map(([l, k]) => `${l}: ${e[k] ?? ''}`).join('\r\n');
+  return FICHA_CAMPOS.map(([l, , k]) => `${l}: ${e[k] ?? ''}`).join('\r\n');
 }
 function viewFicha(id) {
   const e = get('empresas', id);
   if (!e) return '<p>Empresa não encontrada.</p>';
   return `<div class="page-head"><div><div class="sub"><a href="#/ver/empresas/${e.id}">← ${esc(e.nome)}</a></div>
-      <h1>${ico('protocolos')} Ficha para conferência</h1><div class="sub">Copie a tabela e cole-a no email para a empresa confirmar os dados.</div></div>
-      <div class="actions"><button class="btn primary" id="fc-copiar">📋 Copiar tabela</button></div></div>
+      <h1>${ico('protocolos')} Ficha para conferência</h1><div class="sub">Copie a tabela e cole-a no email, ou descarregue a ficha em Word (com pedido de conferência) para anexar.</div></div>
+      <div class="actions"><button class="btn primary" id="fc-copiar">📋 Copiar tabela</button>
+        <button class="btn" data-fc-docx="pt">⬇️ Word (Português)</button>
+        <button class="btn" data-fc-docx="en">⬇️ Word (English)</button></div></div>
     <div class="panel" id="fc-tabela" style="overflow-x:auto">${fichaTabela(e)}</div>`;
 }
 function bindFicha(id) {
@@ -542,6 +536,22 @@ function bindFicha(id) {
     }
     toast('Tabela copiada — cole-a no email.');
   };
+  $$('[data-fc-docx]').forEach((b) => (b.onclick = async () => {
+    const lang = b.dataset.fcDocx;
+    b.disabled = true;
+    try {
+      const [escola, rep] = await Promise.all([carregarLogo('escola'), carregarLogo('republica')]);
+      const D = S.diretor || {};
+      const blob = gerarFichaDocx({
+        lang, escola: S.settings.escola || '', curso: S.settings.curso || '', empresa: e.nome || '',
+        diretor: { nome: D.diretor_curso || '', email: D.email_diretor || '', tel: D.telefone_diretor || '' },
+        campos: FICHA_CAMPOS.map(([pt, en, k]) => ({ pt, en, valor: e[k] == null ? '' : String(k === 'vagas' ? fmtNum(e[k]) : e[k]) })),
+      }, { escola, rep });
+      const nome = `${lang === 'en' ? 'Company information form' : 'Ficha da empresa'} - ${(e.nome || 'empresa').replace(/[\\/:*?"<>|]+/g, '')}.docx`;
+      descarregar(blob, nome);
+    } catch (err) { toast(err.message, true); }
+    b.disabled = false;
+  }));
 }
 
 /* ---------- Listagem breve: aluno, contacto, empresa, tutor e contacto ---------- */

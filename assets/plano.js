@@ -452,6 +452,11 @@ export function gerarPlanoDocx(v, logos = {}, op = {}) {
     <w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1560" w:right="1020" w:bottom="1300" w:left="1020" w:header="230" w:footer="420" w:gutter="0"/>
     <w:pgNumType w:start="${o.capa ? 0 : 1}"/>${o.capa ? '<w:titlePg/>' : ''}</w:sectPr>`;
   const doc = `${XML}<w:document ${NS}><w:body>${body}${sect}</w:body></w:document>`;
+  return pacoteDocx(doc, header(v, logos), footer(v), logos, `Plano de Estágio — ${v.aluno.nome || ''}`);
+}
+
+/** Monta o pacote .docx (ZIP). Logótipos: rIdC1/rIdC2 no corpo, rIdL1/rIdL2 no cabeçalho. */
+function pacoteDocx(doc, hdr, ftr, logos, titulo) {
   const media = (k) => `media/logo-${k === 'rep' ? 'republica' : 'escola'}.${logos[k].ext}`;
   const rel = (id, k) => (logos[k] ? `<Relationship Id="${id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${media(k)}"/>` : '');
   const enc = new TextEncoder();
@@ -468,7 +473,7 @@ export function gerarPlanoDocx(v, logos = {}, op = {}) {
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>`],
     ['docProps/core.xml', `${XML}<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<dc:title>${x(`Plano de Estágio — ${v.aluno.nome || ''}`)}</dc:title><dc:creator>Gestão FCT</dc:creator>
+<dc:title>${x(titulo)}</dc:title><dc:creator>Gestão FCT</dc:creator>
 <dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().slice(0, 19)}Z</dcterms:created></cp:coreProperties>`],
     ['word/_rels/document.xml.rels', `${XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rIdS" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
@@ -481,11 +486,94 @@ ${rel('rIdL1', 'escola')}${rel('rIdL2', 'rep')}</Relationships>`],
     ['word/document.xml', doc],
     ['word/styles.xml', STYLES],
     ['word/numbering.xml', NUMBERING],
-    ['word/header1.xml', header(v, logos)],
-    ['word/footer1.xml', footer(v)],
+    ['word/header1.xml', hdr],
+    ['word/footer1.xml', ftr],
   ].map(([name, s]) => [name, enc.encode(s)]);
   for (const k of ['escola', 'rep']) if (logos[k]) files.push(['word/' + media(k), logos[k].data]);
   return zip(files);
+}
+
+/* ======================= Ficha da empresa para conferência de dados (Word, PT / EN) ======================= */
+/** [rótulo PT, rótulo EN, campo da empresa] */
+export const FICHA_CAMPOS = [
+  ['Denominação social', 'Company name', 'nome'], ['NIF / NIPC', 'Tax identification number (VAT)', 'nif'],
+  ['Natureza jurídica', 'Legal form', 'natureza_juridica'], ['Tipo de entidade', 'Type of organisation', 'tipo'],
+  ['Atividade principal', 'Main activity', 'setor'], ['Morada da sede', 'Registered address', 'morada'],
+  ['Código postal', 'Postcode', 'codigo_postal'], ['Localidade / Concelho', 'Town / Municipality', 'localidade'],
+  ['Telefone', 'Telephone', 'telefone'], ['Email', 'Email', 'email'], ['Website', 'Website', 'website'],
+  ['Representante legal', 'Legal representative', 'representante_legal'], ['Cargo do representante legal', 'Position of the legal representative', 'cargo_representante'],
+  ['Pessoa de contacto principal', 'Main contact person', 'responsavel'], ['Cargo', 'Position', 'cargo_responsavel'],
+  ['Email da pessoa de contacto', 'Contact person email', 'email_responsavel'], ['Telefone da pessoa de contacto', 'Contact person telephone', 'telefone_responsavel'],
+  ['Vagas para estagiários', 'Internship places available', 'vagas'],
+];
+
+const FICHA_TXT = {
+  pt: {
+    titulo: 'Ficha de Identificação da Entidade de Acolhimento',
+    sub: 'Formação em Contexto de Trabalho — conferência de dados',
+    saud: 'Exmos. Senhores,',
+    corpo: (c) => `No âmbito da Formação em Contexto de Trabalho (FCT)${c ? ` do Curso Profissional de ${c}` : ''}, a escola necessita de dados atualizados da vossa entidade para a elaboração do protocolo e do plano de estágio.`,
+    pedido: 'Solicitamos que confirmem os dados abaixo, corrijam o que estiver incorreto e completem os campos em falta (assinalados a amarelo). Pode escrever diretamente neste documento.',
+    devolver: (em) => `Agradecemos a devolução da ficha preenchida${em ? ` para ${em}` : ''}, logo que possível.`,
+    campo: 'Campo', valor: 'Dados registados / a completar', obs: 'Observações / correções',
+    conf: 'Dados conferidos por (nome e cargo):', data: 'Data:',
+    cumpr: 'Com os melhores cumprimentos,', cargo: 'Diretor(a) de Curso', tel: 'Telefone',
+  },
+  en: {
+    titulo: 'Host Organisation Information Form',
+    sub: 'Work-Based Training (Internship) — data verification',
+    saud: 'Dear Sir or Madam,',
+    corpo: (c) => `As part of the Work-Based Training (internship) programme${c ? ` of the Vocational Course in ${c}` : ''}, the school needs up-to-date information about your organisation in order to prepare the training agreement and the internship plan.`,
+    pedido: 'We kindly ask you to check the information below, correct anything that is inaccurate and fill in any missing fields (highlighted in yellow). You may type directly into this document.',
+    devolver: (em) => `Please return the completed form${em ? ` to ${em}` : ''} at your earliest convenience.`,
+    campo: 'Field', valor: 'Recorded data / to be completed', obs: 'Comments / corrections',
+    conf: 'Information checked by (name and position):', data: 'Date:',
+    cumpr: 'Kind regards,', cargo: 'Course Director', tel: 'Telephone',
+  },
+};
+
+/**
+ * d = { lang: 'pt'|'en', escola, curso, diretor: { nome, email, tel }, campos: [{ pt, en, valor }], empresa }
+ * logos = { escola, rep } (como em gerarPlanoDocx)
+ */
+export function gerarFichaDocx(d, logos = {}) {
+  const T = FICHA_TXT[d.lang] || FICHA_TXT.pt;
+  const AZUL_ESC = '1F3864', AMARELO = 'FFF2CC', CINZA = 'F2F2F2';
+  const t = (s, o = {}) => r(s, { sz: 10, ...o });
+  const para = (runs, o = {}) => p(runs, { after: 6, line: 264, align: 'both', ...o });
+  const linhas = d.campos.map((c) => {
+    const vazio = !String(c.valor ?? '').trim();
+    return { h: 310, cells: [
+      { shade: CINZA, c: cellP(t(c[d.lang] || c.pt, { b: true, sz: 9 })) },
+      { shade: vazio ? AMARELO : null, c: cellP(t(c.valor || '')) }] };
+  });
+  const dir = d.diretor || {};
+  const body = p(t(T.titulo, { b: true, sz: 15, color: AZUL_ESC }), { align: 'center', before: 4, after: 2 })
+    + p(t(T.sub, { sz: 11, color: '595959' }), { align: 'center', after: 12 })
+    + para(t(T.saud))
+    + para(t(T.corpo(d.curso)))
+    + para(t(T.pedido))
+    + para(t(T.devolver(dir.email)), { after: 10 })
+    + tbl([3500, W - 3500], [
+      { header: true, h: 380, cells: [T.campo, T.valor].map((h) => ({ shade: 'DBE5F1', c: cellP(t(h, { b: true, sz: 10 }), { align: 'center' }) })) },
+      ...linhas], { borderColor: '8EA9DB' })
+    + p('', { after: 8 })
+    + tbl([W], [{ h: 900, cells: [{ vAlign: 'top', c: cellP(t(T.obs, { b: true, sz: 9 })) }] }], { borderColor: '8EA9DB' })
+    + p(t(T.conf) + t(' __________________________') + t(`   ${T.data}`) + t(' ____ / ____ / ______'), { before: 12, after: 14 })
+    + p(t(T.cumpr), { after: 4, keepNext: true })
+    + p(t(dir.nome || '', { b: true }) + t(` — ${T.cargo}${d.curso ? ` (${d.curso})` : ''}`), { after: 0, keepNext: true })
+    + p(t([d.escola, dir.email, dir.tel && `${T.tel}: ${dir.tel}`].filter(Boolean).join(' · '), { sz: 9.5 }), { after: 0 });
+  const sect = `<w:sectPr><w:headerReference w:type="default" r:id="rIdH"/><w:footerReference w:type="default" r:id="rIdF"/>
+    <w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1900" w:right="1020" w:bottom="900" w:left="1020" w:header="340" w:footer="420" w:gutter="0"/></w:sectPr>`;
+  const doc = `${XML}<w:document ${NS}><w:body>${body}${sect}</w:body></w:document>`;
+  const regua = '<w:pBdr><w:bottom w:val="single" w:sz="8" w:space="4" w:color="2E74B5"/></w:pBdr>';
+  const hdr = `${XML}<w:hdr ${NS}>${tbl([1700, W - 1700 - 2100, 2100], [{ cells: [
+    { c: cellP(logos.escola ? img('rIdL1', 101, ...caber(logos.escola, 70, 58), 'logo-escola') : '') },
+    { c: cellP(r((d.escola || '').toUpperCase(), { b: true, sz: 12, color: AZUL_ESC }), { align: 'center' }) },
+    { c: cellP(logos.rep ? img('rIdL2', 102, ...caber(logos.rep, 100, 40), 'logo-republica') : '', { align: 'right' }) }] }], { noBorders: true })}${p('', { after: 0, line: 120, border: regua })}</w:hdr>`;
+  const ftr = `${XML}<w:ftr ${NS}>${p(r(d.empresa || '', { sz: 8, color: '7F7F7F' }) + tab + fld('PAGE', { sz: 8, color: '7F7F7F' }),
+    { tabs: [[W, 'right']], after: 0 })}</w:ftr>`;
+  return pacoteDocx(doc, hdr, ftr, logos, `${T.titulo} — ${d.empresa || ''}`);
 }
 
 /* ---------- ZIP (sem compressão — suficiente para o Word) ---------- */
