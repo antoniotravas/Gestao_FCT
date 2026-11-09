@@ -1,7 +1,7 @@
 // Gestão FCT — interface (SPA sem dependências)
-import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261109a';
-import { planoVars, planoEmFalta, gerarPlanoDocx, gerarFichaDocx, FICHA_CAMPOS, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261109a';
-import { gerarXlsx } from './xlsx.js?v=20261109a';
+import { parseFile, autoMap, importFields, buildLines, IMPORT_TARGETS } from './import.js?v=20261109b';
+import { planoVars, planoEmFalta, gerarPlanoDocx, gerarFichaDocx, FICHA_CAMPOS, OBJ_GERAIS, OBJ_ESPECIFICOS } from './plano.js?v=20261109b';
+import { gerarXlsx } from './xlsx.js?v=20261109b';
 
 const S = { schema: null, data: {}, settings: {}, idx: {}, eu: {}, cursos: [], curso_id: 0, diretor: {}, autores: {} };
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -133,7 +133,7 @@ function fieldInput(f, value) {
     case 'number': return `<input type="number" step="any" name="${f.name}" value="${v}" ${req}
       ${f.min != null ? `min="${f.min}"` : ''} ${f.max != null ? `max="${f.max}"` : ''}>`;
     case 'datetime-local': return `<input type="datetime-local" name="${f.name}" value="${esc((value || '').slice(0, 16))}" ${req}>`;
-    default: return `<input type="${f.type}" name="${f.name}" value="${v}" ${req}>`;
+    default: return `<input type="${f.type}" name="${f.name}" value="${v}" ${req}${f.readonly ? ' readonly tabindex="-1" class="ro"' : ''}>`;
   }
 }
 

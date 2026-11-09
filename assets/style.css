@@ -62,6 +62,8 @@ main { padding: 24px 28px; min-width: 0; }
 input, select, textarea { font: inherit; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--text); width: 100%; }
 textarea { min-height: 80px; resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+input.ro { background: var(--bg); color: var(--muted); cursor: default; }
+input.ro:focus { outline: none; border-color: var(--line); }
 .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 .toolbar input[type=search] { max-width: 320px; }
 .toolbar select { width: auto; }

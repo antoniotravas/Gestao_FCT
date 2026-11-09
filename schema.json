@@ -328,6 +328,8 @@
           "label": "Curso",
           "type": "text",
           "list": true,
+          "readonly": true,
+          "default": "setting:curso",
           "aliases": [
             "Curso"
           ]

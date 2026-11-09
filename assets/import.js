@@ -181,7 +181,7 @@ const SKIP = ['ano_letivo', 'estado'];
 
 // o estado das empresas pode vir do ficheiro (ex.: coluna «Status»: Aceite, Contactada, Não aceitou…)
 export function importFields(schema, entity) {
-  return schema.entities[entity].fields.filter((f) => f.type !== 'ref' && (!SKIP.includes(f.name) || (entity === 'empresas' && f.name === 'estado')));
+  return schema.entities[entity].fields.filter((f) => f.type !== 'ref' && !f.readonly && (!SKIP.includes(f.name) || (entity === 'empresas' && f.name === 'estado')));
 }
 
 /**

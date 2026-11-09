@@ -121,6 +121,7 @@ function importar(array $p): array {
                 // pelo nome só quando não há conflito de nº de processo (evita juntar homónimos)
                 if (!$alId && $porNome && ($num === '' || $porNome['numero'] === '')) $alId = $porNome['id'];
                 if ($ano !== '') $A['ano_letivo'] = $ano;
+                $A['curso'] = setting('curso'); // o aluno fica sempre no curso do diretor (ignora a coluna «Curso» do ficheiro)
                 $alId = importar_upsert('alunos', $alId, $A, [], $tocados, $res, $aviso, $nl);
                 if ($num !== '') $alNum[$num] = $alId;
                 $alNome[norm_txt($A['nome'])] = ['id' => $alId, 'numero' => $num];
@@ -150,6 +151,7 @@ function importar(array $p): array {
             if (count($nomes) > 1) $aviso("O NIF $nif aparece em empresas diferentes: «" . implode('», «', $nomes) . "». Corrija na ficha da empresa.");
         }
         if (!$simular && $ano !== '' && (setting('ano_letivo') ?? '') === '') set_setting('ano_letivo', $ano);
+        if ($CTX['c']) curso_dos_alunos($pdo, $CTX['c']); // alunos importados ficam no curso do diretor (campo «Curso»)
         $simular ? $pdo->rollBack() : $pdo->commit();
     } catch (Throwable $t) {
         if ($pdo->inTransaction()) $pdo->rollBack();

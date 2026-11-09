@@ -98,7 +98,20 @@ function db(): PDO {
         }
     }
     migrar_utilizadores($pdo);
+    // Alunos: o campo «Curso» passa a ser sempre o nome do curso a que o aluno pertence (o do diretor de curso)
+    if (!$pdo->query("SELECT 1 FROM definicoes WHERE chave = 'mig_curso_alunos'")->fetchColumn()) {
+        curso_dos_alunos($pdo);
+        $pdo->exec("INSERT INTO definicoes (chave, valor) VALUES ('mig_curso_alunos', '1')");
+    }
     return $pdo;
+}
+
+/** Acerta o campo «Curso» dos alunos com o nome do curso a que pertencem (curso_id); $cid = só esse curso. */
+function curso_dos_alunos(PDO $pdo, ?int $cid = null): void {
+    $nome = '(SELECT nome FROM cursos WHERE cursos.id = alunos.curso_id)';
+    $st = $pdo->prepare("UPDATE alunos SET curso = $nome WHERE curso_id IS NOT NULL AND IFNULL(curso, '') <> IFNULL($nome, '')"
+        . ($cid ? ' AND curso_id = ?' : ''));
+    $st->execute($cid ? [$cid] : []);
 }
 
 /* ---------- Utilizadores, cursos e separação dos dados por curso ----------
@@ -202,7 +215,10 @@ function setting(string $key): ?string {
 function set_setting(string $key, ?string $value): void {
     global $CTX;
     if ($key === 'curso') {
-        if ($CTX['c'] && trim((string)$value) !== '') db()->prepare('UPDATE cursos SET nome = ? WHERE id = ?')->execute([trim($value), $CTX['c']]);
+        if ($CTX['c'] && trim((string)$value) !== '') {
+            db()->prepare('UPDATE cursos SET nome = ? WHERE id = ?')->execute([trim($value), $CTX['c']]);
+            curso_dos_alunos(db(), $CTX['c']);
+        }
         return;
     }
     db()->prepare('INSERT INTO definicoes (chave, valor) VALUES (?, ?)
@@ -403,6 +419,7 @@ function save(string $name, array $e, array $input): array {
     }
     global $CTX;
     $row = clean_row($e, $input);
+    if ($name === 'alunos' && $CTX['c']) $row['curso'] = setting('curso'); // o aluno é sempre do curso do diretor
     check_required($e, $row, $id === 0);
     verificar_refs($e, $row);
     $pdo = db();
@@ -773,8 +790,10 @@ switch ($action) {
         $id = (int)($body['id'] ?? 0);
         $nome = trim((string)($body['nome'] ?? ''));
         if ($nome === '') fail('Indique o nome do curso.');
-        if ($id) db()->prepare('UPDATE cursos SET nome = ? WHERE id = ?')->execute([$nome, $id]);
-        else {
+        if ($id) {
+            db()->prepare('UPDATE cursos SET nome = ? WHERE id = ?')->execute([$nome, $id]);
+            curso_dos_alunos(db(), $id);
+        } else {
             db()->prepare('INSERT INTO cursos (nome) VALUES (?)')->execute([$nome]);
             $id = (int)db()->lastInsertId();
             // o novo curso começa com os textos do plano do curso ativo (podem ser alterados depois)
