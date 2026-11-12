@@ -10,7 +10,7 @@
  */
 declare(strict_types=1);
 
-/** Itens a lembrar: tarefas, pendentes com empresas, entrevistas e reuniões até daqui a N dias. */
+/** Itens a lembrar: tarefas (com data até daqui a N dias e as por fazer sem data), pendentes com empresas, entrevistas e reuniões até daqui a N dias. */
 function lembretes_itens(): array {
     $dias  = max(0, (int)(setting('lembretes_dias') ?: 2));
     $hoje  = date('Y-m-d');
@@ -27,6 +27,10 @@ function lembretes_itens(): array {
                    LEFT JOIN empresas e ON e.id = t.empresa_id LEFT JOIN alunos a ON a.id = t.aluno_id
                    WHERE t.curso_id IN ($in) AND (t.estado IS NULL OR t.estado <> 'Feita') AND t.data_limite IS NOT NULL AND t.data_limite <= ?
                    ORDER BY t.data_limite", [$limite]);
+    $semData = $q("SELECT t.titulo, e.nome AS empresa, a.nome AS aluno FROM tarefas t
+                   LEFT JOIN empresas e ON e.id = t.empresa_id LEFT JOIN alunos a ON a.id = t.aluno_id
+                   WHERE t.curso_id IN ($in) AND (t.estado IS NULL OR t.estado <> 'Feita') AND (t.data_limite IS NULL OR t.data_limite = '')
+                   ORDER BY t.id", []);
     $pendentes = $q("SELECT c.proximo_passo, c.assunto, c.pendente, c.data_followup, e.nome AS empresa FROM contactos c
                      JOIN empresas e ON e.id = c.empresa_id
                      WHERE c.utilizador_id = {$CTX['u']} AND c.pendente IS NOT NULL AND c.pendente <> 'Nada' AND c.data_followup IS NOT NULL AND c.data_followup <= ?
@@ -39,7 +43,7 @@ function lembretes_itens(): array {
                     JOIN colocacoes c ON c.id = r.colocacao_id JOIN alunos a ON a.id = c.aluno_id JOIN empresas e ON e.id = c.empresa_id
                     WHERE r.curso_id IN ($in) AND r.estado = 'Agendada' AND substr(r.data_hora, 1, 10) BETWEEN ? AND ?
                     ORDER BY r.data_hora", [$hoje, $limite]);
-    return compact('tarefas', 'pendentes', 'entrevistas', 'reunioes', 'dias');
+    return compact('tarefas', 'semData', 'pendentes', 'entrevistas', 'reunioes', 'dias');
 }
 
 function lembretes_texto(array $it): array {
@@ -51,6 +55,12 @@ function lembretes_texto(array $it): array {
         $sec[] = "TAREFAS\n" . implode("\n", array_map(fn($t) => sprintf('  • %s — %s%s',
             $quando($t['data_limite']), $t['titulo'],
             ($t['empresa'] || $t['aluno']) ? ' (' . implode(', ', array_filter([$t['empresa'], $t['aluno']])) . ')' : ''), $it['tarefas']));
+    }
+    if ($it['semData']) {
+        $sec[] = "TAREFAS SEM DATA
+" . implode("
+", array_map(fn($t) => sprintf('  • %s%s', $t['titulo'],
+            ($t['empresa'] || $t['aluno']) ? ' (' . implode(', ', array_filter([$t['empresa'], $t['aluno']])) . ')' : ''), $it['semData']));
     }
     if ($it['pendentes']) {
         $sec[] = "PENDENTES COM EMPRESAS\n" . implode("\n", array_map(fn($c) => sprintf('  • %s — %s: %s [%s]',
@@ -64,7 +74,7 @@ function lembretes_texto(array $it): array {
         $sec[] = "REUNIÕES DE AVALIAÇÃO\n" . implode("\n", array_map(fn($x) => sprintf('  • %s %s — %s: %s → %s%s',
             $d($x['data_hora']), substr($x['data_hora'], 11, 5), $x['tipo'] ?: 'Reunião', $x['aluno'], $x['empresa'], $x['local'] ? " ({$x['local']})" : ''), $it['reunioes']));
     }
-    $n = count($it['tarefas']) + count($it['pendentes']) + count($it['entrevistas']) + count($it['reunioes']);
+    $n = count($it['tarefas']) + count($it['semData']) + count($it['pendentes']) + count($it['entrevistas']) + count($it['reunioes']);
     global $CTX;
     $nome = $CTX['nome'];
     $url = setting('app_url');
