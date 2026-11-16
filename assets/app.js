@@ -286,6 +286,11 @@ function listOpts(name) {
     o.hide = ['ano_letivo', 'curso']; // processo, nome, turma, email, telefone + empresa (o curso é o do diretor: igual em todas as linhas)
     o.rowClass = (r) => (afetacaoDe(r.id) ? 'afeto' : '');
   }
+  if (name === 'empresas') {
+    // Parceiras com alunos afetos no ano letivo ativo: mesmo fundo lima dos alunos afetos
+    const comAlunos = new Set(rows('colocacoes').filter((c) => c.estado !== 'Interrompida' && inYear(c)).map((c) => Number(c.empresa_id)));
+    o.rowClass = (r) => (r.estado === 'Parceira' && comAlunos.has(Number(r.id)) ? 'afeto' : '');
+  }
   return o;
 }
 
